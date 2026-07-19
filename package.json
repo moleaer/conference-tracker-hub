@@ -1,0 +1,11 @@
+{
+  "name": "conference-tracker-hub",
+  "version": "1.0.0",
+  "description": "Moleaer Water Process - Conference Tracker (Notion-backed)",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
