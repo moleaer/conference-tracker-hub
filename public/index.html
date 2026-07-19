@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conference Tracker · Water Process Hub</title>
+<style>
+  :root {
+    --blue: #1B75BB;
+    --blue-dark: #0f4c7a;
+    --sky: #81D2E7;
+    --green: #92D050;
+    --orange: #EE5523;
+    --amber: #E99006;
+    --ink: #1c2733;
+    --muted: #6b7785;
+    --line: #e3e8ec;
+    --bg: #f6f8fa;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  header {
+    background: var(--blue);
+    color: white;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 { margin: 0; font-size: 20px; font-weight: 700; }
+  header .sub { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .btn {
+    background: white; color: var(--blue); border: none; border-radius: 6px;
+    padding: 9px 16px; font-weight: 600; font-size: 13px; cursor: pointer;
+  }
+  .btn:hover { background: #eef6fc; }
+  .btn.secondary { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.5); }
+  .btn.secondary:hover { background: rgba(255,255,255,0.12); }
+
+  .toolbar {
+    display: flex; gap: 10px; padding: 16px 28px; flex-wrap: wrap;
+    align-items: center; background: white; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .toolbar select, .toolbar input {
+    padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 13px; color: var(--ink); background: white;
+  }
+  .toolbar .spacer { flex: 1; }
+  .count { font-size: 12px; color: var(--muted); }
+
+  main { padding: 20px 28px 60px; max-width: 1400px; margin: 0 auto; }
+
+  .group { margin-bottom: 28px; }
+  .group h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); margin: 0 0 10px; font-weight: 700;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; cursor: pointer; transition: box-shadow .15s, transform .15s;
+  }
+  .card:hover { box-shadow: 0 4px 14px rgba(20,40,60,0.08); transform: translateY(-1px); }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .card h3 { font-size: 15px; margin: 0 0 4px; line-height: 1.3; }
+  .card .meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 3px 8px; border-radius: 20px; white-space: nowrap; color: white;
+  }
+  .card .notes { font-size: 12.5px; color: #445; line-height: 1.4; margin-top: 6px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .deadline-flag { font-size: 11px; font-weight: 700; margin-top: 8px; }
+  .deadline-flag.soon { color: var(--orange); }
+  .deadline-flag.ok { color: var(--muted); font-weight: 400; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+
+  /* Modal */
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(20,30,40,0.4);
+    align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 640px;
+    max-height: 88vh; overflow-y: auto;
+  }
+  .modal h2 { margin: 0 0 16px; font-size: 18px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px;
+    font-family: inherit;
+  }
+  .field textarea { min-height: 70px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; justify-content: space-between; margin-top: 18px; }
+  .modal-actions .right { display: flex; gap: 8px; }
+  .btn.primary { background: var(--blue); color: white; }
+  .btn.primary:hover { background: var(--blue-dark); }
+  .btn.danger { background: white; color: var(--orange); border: 1px solid var(--orange); }
+  .btn.ghost { background: white; color: var(--muted); border: 1px solid var(--line); }
+
+  .loading, .error-banner { text-align: center; padding: 40px; color: var(--muted); }
+  .error-banner { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Conference Tracker</h1>
+    <div class="sub">Water Process · Notion-backed · live</div>
+  </div>
+  <button class="btn" onclick="openModal()">+ Add Conference</button>
+</header>
+
+<div class="toolbar">
+  <select id="filterYear" onchange="render()">
+    <option value="">All years</option>
+  </select>
+  <select id="filterStatus" onchange="render()">
+    <option value="">All statuses</option>
+  </select>
+  <select id="filterRegion" onchange="render()">
+    <option value="">All regions</option>
+  </select>
+  <input id="filterSearch" placeholder="Search name, city, notes…" oninput="render()" style="min-width:200px">
+  <div class="spacer"></div>
+  <span class="count" id="resultCount"></span>
+  <button class="btn ghost" style="border-radius:6px;padding:7px 12px;font-size:12px" onclick="loadData()">↻ Refresh</button>
+</div>
+
+<main id="main">
+  <div class="loading">Loading conferences from Notion…</div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">Add Conference</h2>
+    <form id="form" onsubmit="save(event)">
+      <input type="hidden" id="f_id">
+      <div class="field"><label>Conference Name</label><input id="f_fullName" required></div>
+      <div class="row2">
+        <div class="field"><label>Short Name</label><input id="f_shortName"></div>
+        <div class="field"><label>Year</label>
+          <select id="f_year"><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option></select>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field"><label>City</label><input id="f_city"></div>
+        <div class="field"><label>State</label><input id="f_state"></div>
+        <div class="field"><label>Country</label><input id="f_country" value="US"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Abstract Deadline</label><input type="date" id="f_deadline"></div>
+        <div class="field"><label>Conference Dates</label><input id="f_confDates" placeholder="e.g. Mar 1–4, 2027"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Venue</label><input id="f_venue"></div>
+        <div class="field"><label>Region</label>
+          <select id="f_region"><option>US</option><option>EUR</option><option>APAC</option><option>LATAM</option><option>GLOBAL</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>CFA URL</label><input id="f_cfaUrl" placeholder="https://…"></div>
+        <div class="field"><label>Website</label><input id="f_website" placeholder="https://…"></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label>Status</label>
+          <select id="f_status">
+            <option value="monitoring">monitoring</option>
+            <option value="planning">planning</option>
+            <option value="submitted">submitted</option>
+            <option value="accepted">accepted</option>
+            <option value="rejected">rejected</option>
+            <option value="ready">ready</option>
+            <option value="complete">complete</option>
+            <option value="withdrawn">withdrawn</option>
+            <option value="pass">pass</option>
+          </select>
+        </div>
+        <div class="field"><label>Pursue Next Year</label>
+          <select id="f_pursueNextYear"><option value="maybe">maybe</option><option value="yes">yes</option><option value="no">no</option></select>
+        </div>
+        <div class="field"><label>Tech Paper Required</label>
+          <select id="f_techPaper"><option value="false">No</option><option value="true">Yes</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Paper Deadline</label><input type="date" id="f_paperDeadline"></div>
+        <div class="field"><label>Presenter</label><input id="f_presenter"></div>
+      </div>
+      <div class="field"><label>Presentation Details</label><input id="f_presDetails"></div>
+      <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn danger" id="deleteBtn" onclick="del()" style="display:none">Delete</button>
+        <div class="right">
+          <button type="button" class="btn ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn primary">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const STATUS_COLORS = {
+  monitoring: '#8a94a3', planning: '#1B75BB', submitted: '#E99006', accepted: '#5aa84a',
+  rejected: '#c0392b', ready: '#7a5ec7', complete: '#2f8f46', withdrawn: '#b06a1e', pass: '#a7afb8'
+};
+
+let allConfs = [];
+
+async function loadData() {
+  document.getElementById('main').innerHTML = '<div class="loading">Loading conferences from Notion…</div>';
+  try {
+    const res = await fetch('/api/get');
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    allConfs = json.conferences || [];
+    populateFilters();
+    render();
+  } catch (err) {
+    document.getElementById('main').innerHTML =
+      '<div class="error-banner">Could not load data: ' + escapeHtml(err.message) +
+      '<br><br>If this is the first run, make sure the Notion database ID and integration token are set in Netlify environment variables, and that the database has been shared with the integration.</div>';
+  }
+}
+
+function populateFilters() {
+  const years = [...new Set(allConfs.map(c => c.year).filter(Boolean))].sort();
+  const statuses = [...new Set(allConfs.map(c => c.status).filter(Boolean))].sort();
+  const regions = [...new Set(allConfs.map(c => c.region).filter(Boolean))].sort();
+  fillSelect('filterYear', years, 'All years');
+  fillSelect('filterStatus', statuses, 'All statuses');
+  fillSelect('filterRegion', regions, 'All regions');
+}
+function fillSelect(id, values, allLabel) {
+  const el = document.getElementById(id);
+  const current = el.value;
+  el.innerHTML = `<option value="">${allLabel}</option>` + values.map(v => `<option value="${v}">${v}</option>`).join('');
+  el.value = current;
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const diff = (new Date(dateStr) - new Date()) / 86400000;
+  return Math.ceil(diff);
+}
+
+function render() {
+  const year = document.getElementById('filterYear').value;
+  const status = document.getElementById('filterStatus').value;
+  const region = document.getElementById('filterRegion').value;
+  const search = document.getElementById('filterSearch').value.toLowerCase();
+
+  let list = allConfs.filter(c => {
+    if (year && c.year !== year) return false;
+    if (status && c.status !== status) return false;
+    if (region && c.region !== region) return false;
+    if (search) {
+      const hay = [c.fullName, c.shortName, c.city, c.notes].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('resultCount').textContent = list.length + ' of ' + allConfs.length + ' conferences';
+
+  if (list.length === 0) {
+    document.getElementById('main').innerHTML = '<div class="empty">No conferences match these filters.</div>';
+    return;
+  }
+
+  // Group by year, then sort each group by deadline
+  const byYear = {};
+  list.forEach(c => { (byYear[c.year || 'Unspecified'] = byYear[c.year || 'Unspecified'] || []).push(c); });
+
+  let html = '';
+  Object.keys(byYear).sort().forEach(y => {
+    const items = byYear[y].sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
+    html += `<div class="group"><h2>${y}</h2><div class="grid">`;
+    items.forEach(c => { html += cardHtml(c); });
+    html += `</div></div>`;
+  });
+  document.getElementById('main').innerHTML = html;
+}
+
+function cardHtml(c) {
+  const color = STATUS_COLORS[c.status] || '#8a94a3';
+  const days = daysUntil(c.deadline);
+  let deadlineHtml = '';
+  if (c.deadline) {
+    if (days !== null && days >= 0 && days <= 30 && !['accepted','rejected','complete','pass','withdrawn'].includes(c.status)) {
+      deadlineHtml = `<div class="deadline-flag soon">⚠ Deadline in ${days}d — ${c.deadline}</div>`;
+    } else {
+      deadlineHtml = `<div class="deadline-flag ok">Deadline: ${c.deadline}</div>`;
+    }
+  }
+  const loc = [c.city, c.state, c.country].filter(Boolean).join(', ');
+  return `
+    <div class="card" onclick='openModal(${JSON.stringify(c).replace(/'/g, "&apos;")})'>
+      <div class="card-top">
+        <h3>${escapeHtml(c.fullName || c.shortName || 'Untitled')}</h3>
+        <span class="badge" style="background:${color}">${escapeHtml(c.status || '')}</span>
+      </div>
+      <div class="meta">${escapeHtml(loc)}${c.confDates ? ' · ' + escapeHtml(c.confDates) : ''}</div>
+      ${c.notes ? `<div class="notes">${escapeHtml(c.notes)}</div>` : ''}
+      ${deadlineHtml}
+    </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function openModal(c) {
+  document.getElementById('form').reset();
+  document.getElementById('modalTitle').textContent = c ? 'Edit Conference' : 'Add Conference';
+  document.getElementById('deleteBtn').style.display = c ? 'inline-block' : 'none';
+  document.getElementById('f_id').value = c ? c.id : '';
+  document.getElementById('f_fullName').value = c?.fullName || '';
+  document.getElementById('f_shortName').value = c?.shortName || '';
+  document.getElementById('f_year').value = c?.year || '2026';
+  document.getElementById('f_city').value = c?.city || '';
+  document.getElementById('f_state').value = c?.state || '';
+  document.getElementById('f_country').value = c?.country || 'US';
+  document.getElementById('f_deadline').value = c?.deadline || '';
+  document.getElementById('f_confDates').value = c?.confDates || '';
+  document.getElementById('f_venue').value = c?.venue || '';
+  document.getElementById('f_region').value = c?.region || 'US';
+  document.getElementById('f_cfaUrl').value = c?.cfaUrl || '';
+  document.getElementById('f_website').value = c?.website || '';
+  document.getElementById('f_status').value = c?.status || 'monitoring';
+  document.getElementById('f_pursueNextYear').value = c?.pursueNextYear || 'maybe';
+  document.getElementById('f_techPaper').value = c?.techPaper ? 'true' : 'false';
+  document.getElementById('f_paperDeadline').value = c?.paperDeadline || '';
+  document.getElementById('f_presenter').value = c?.presenter || '';
+  document.getElementById('f_presDetails').value = c?.presDetails || '';
+  document.getElementById('f_notes').value = c?.notes || '';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+async function save(e) {
+  e.preventDefault();
+  const id = document.getElementById('f_id').value || null;
+  const data = {
+    fullName: document.getElementById('f_fullName').value,
+    shortName: document.getElementById('f_shortName').value,
+    year: document.getElementById('f_year').value,
+    city: document.getElementById('f_city').value,
+    state: document.getElementById('f_state').value,
+    country: document.getElementById('f_country').value,
+    deadline: document.getElementById('f_deadline').value,
+    confDates: document.getElementById('f_confDates').value,
+    venue: document.getElementById('f_venue').value,
+    region: document.getElementById('f_region').value,
+    cfaUrl: document.getElementById('f_cfaUrl').value,
+    website: document.getElementById('f_website').value,
+    status: document.getElementById('f_status').value,
+    pursueNextYear: document.getElementById('f_pursueNextYear').value,
+    techPaper: document.getElementById('f_techPaper').value === 'true',
+    paperDeadline: document.getElementById('f_paperDeadline').value,
+    presenter: document.getElementById('f_presenter').value,
+    presDetails: document.getElementById('f_presDetails').value,
+    notes: document.getElementById('f_notes').value,
+  };
+  const res = await fetch('/api/save', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ id, data })
+  });
+  const json = await res.json();
+  if (json.error) { alert('Save failed: ' + json.error); return; }
+  closeModal();
+  loadData();
+}
+
+async function del() {
+  const id = document.getElementById('f_id').value;
+  if (!id) return;
+  if (!confirm('Delete this conference? This archives it in Notion.')) return;
+  const res = await fetch('/api/delete', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ id })
+  });
+  const json = await res.json();
+  if (json.error) { alert('Delete failed: ' + json.error); return; }
+  closeModal();
+  loadData();
+}
+
+loadData();
+</script>
+</body>
+</html>
