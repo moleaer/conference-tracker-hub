@@ -1,36 +1,9 @@
 [build]
-publish = "public"
-functions = "netlify/functions"
+  publish = "public"
 
-[[headers]]
-for = "/*"
-[headers.values]
-X-Frame-Options = "SAMEORIGIN"
-X-Content-Type-Options = "nosniff"
-
-[[headers]]
-for = "/api/*"
-[headers.values]
-Access-Control-Allow-Origin = "*"
-Access-Control-Allow-Methods = "GET, POST, OPTIONS"
-Access-Control-Allow-Headers = "Content-Type"
-
-[[redirects]]
-from = "/api/get"
-to = "/.netlify/functions/notion-get"
-status = 200
-
-[[redirects]]
-from = "/api/save"
-to = "/.netlify/functions/notion-save"
-status = 200
-
-[[redirects]]
-from = "/api/delete"
-to = "/.netlify/functions/notion-delete"
-status = 200
-
-[[redirects]]
-from = "/api/setup"
-to = "/.netlify/functions/notion-setup"
-status = 200
+  [[headers]]
+    for = "/*"
+      [headers.values]
+          X-Frame-Options = "SAMEORIGIN"
+              X-Content-Type-Options = "nosniff"
+              
