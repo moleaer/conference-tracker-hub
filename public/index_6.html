@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moleaer | WP Conference Intelligence Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1b75bb;--blue-dark:#155f9a;--blue-light:#e8f4fc;--blue-mid:#cce6f6;--bg:#f4f7fa;--surface:#fff;--surface2:#f0f5fa;--border:#dce6ef;--text:#1a2b3c;--muted:#6b8299;--accepted:#0e9f6e;--accepted-bg:#ecfdf5;--submitted:#1b75bb;--submitted-bg:#e8f4fc;--planning:#d97706;--planning-bg:#fffbeb;--monitoring:#6b8299;--monitoring-bg:#f4f7fa;--missed:#dc2626;--missed-bg:#fef2f2;--rejected:#dc2626;--rejected-bg:#fef2f2;--not-pursuing:#94a3b8;--not-pursuing-bg:#f8fafc;--passed:#f59e0b;--passed-bg:#fffbeb;--ready:#0891b2;--ready-bg:#ecfeff;--urgent:#c2410c;--urgent-bg:#fff7ed;--paper:#7c3aed;--paper-bg:#f5f3ff;--shadow:0 1px 3px rgba(0,80,140,0.08);--shadow-md:0 4px 16px rgba(0,80,140,0.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;min-height:100vh}
+.header{background:var(--surface);border-bottom:2px solid var(--blue);padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);min-width:0}
+.logo-wordmark{font-size:20px;font-weight:600;color:var(--blue);letter-spacing:-0.02em}
+.logo-area{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.logo-divider{width:1px;height:28px;background:var(--border);flex-shrink:0}
+.app-title{font-weight:600;font-size:14px;color:var(--text);white-space:nowrap}
+.app-subtitle{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{border-radius:4px;padding:4px 10px;font-size:11px;font-weight:600;letter-spacing:0.04em}
+.badge-blue{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid)}
+.badge-paper{background:var(--paper-bg);color:var(--paper);border:1px solid #ddd6fe}
+.date-display{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+
+/* Year tabs */
+.year-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 40px}
+.year-tab{padding:12px 24px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.15s;user-select:none}
+.year-tab:hover{color:var(--blue)}
+.year-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.year-tab .tab-count{display:inline-flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0 6px;font-size:10px;margin-left:6px;min-width:20px;height:16px}
+
+.summary-bar{display:grid;grid-template-columns:repeat(6,1fr);background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
+.stat-card{padding:14px 20px;border-right:1px solid var(--border)}
+.stat-card:last-child{border-right:none}
+.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:3px}
+.stat-value{font-size:22px;font-weight:600;line-height:1}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+.alert-wrap{padding:16px 40px 0;display:flex;flex-direction:column;gap:10px}
+.alert-banner{border-radius:6px;overflow:hidden}
+.ab-paper{background:var(--paper-bg);border:1px solid #ddd6fe;border-left:4px solid var(--paper)}
+.ab-urgent{background:var(--urgent-bg);border:1px solid #fed7aa;border-left:4px solid var(--urgent)}
+.ab-ondeck{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--muted);opacity:0.85}
+.alert-hdr{padding:9px 16px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;border-bottom-width:1px;border-bottom-style:solid}
+.ah-paper{color:var(--paper);border-bottom-color:#ddd6fe}
+.ah-urgent{color:var(--urgent);border-bottom-color:#fed7aa}
+.alert-item{display:flex;align-items:center;gap:14px;padding:8px 16px;border-bottom-width:1px;border-bottom-style:solid;font-size:12px;transition:background 0.1s}
+.alert-item:hover{background:rgba(0,0,0,0.03)}
+.alert-item:last-child{border-bottom:none}
+.ai-paper{border-bottom-color:rgba(124,58,237,0.08)}
+.ai-urgent{border-bottom-color:rgba(194,65,12,0.08)}
+.a-conf{font-weight:500;flex:1}
+.a-dl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);min-width:85px}
+.a-mal{font-family:'IBM Plex Mono',monospace;font-size:11px;min-width:110px}
+.a-mal-paper{color:var(--paper);font-weight:600}
+.a-mal-urgent{color:var(--urgent);font-weight:600}
+.a-days{font-weight:600;min-width:70px}
+.a-days-paper{color:var(--paper)}
+.a-days-urgent{color:var(--urgent)}
+
+.controls{padding:12px 40px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);border-bottom:1px solid var(--border);margin-top:16px;box-shadow:var(--shadow)}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 12px;flex:1;min-width:200px;max-width:260px;transition:border-color 0.15s}
+.search-box:focus-within{border-color:var(--blue)}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:12px;width:100%}
+.search-box input::placeholder{color:var(--muted)}
+.sec-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
+.filter-group{display:flex;gap:5px;flex-wrap:wrap}
+.fb{padding:5px 11px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.12s;white-space:nowrap}
+.fb:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+.f-all{background:var(--blue);border-color:var(--blue);color:#fff}
+.f-accepted{background:var(--accepted);border-color:var(--accepted);color:#fff}
+.f-submitted{background:var(--submitted);border-color:var(--submitted);color:#fff}
+.f-planning{background:var(--planning);border-color:var(--planning);color:#fff}
+.f-monitoring{background:var(--muted);border-color:var(--muted);color:#fff}
+.f-missed{background:var(--missed);border-color:var(--missed);color:#fff}
+.f-ready{background:var(--ready);border-color:var(--ready);color:#fff}
+.f-urgent{background:var(--urgent);border-color:var(--urgent);color:#fff}
+.f-paper{background:var(--paper);border-color:var(--paper);color:#fff}
+.f-archived{background:var(--text);border-color:var(--text);color:#fff}
+.f-rejected{background:var(--rejected);border-color:var(--rejected);color:#fff}
+.f-not-pursuing{background:var(--not-pursuing);border-color:var(--not-pursuing);color:#fff}
+.f-passed{background:var(--passed);border-color:var(--passed);color:#fff}
+.f-pass{background:var(--passed);border-color:var(--passed);color:#fff}
+.count-badge{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.ctrls-r{margin-left:auto}
+
+.table-wrap{padding:20px 40px 60px;overflow-x:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);min-width:1200px}
+thead tr{background:var(--surface2)}
+th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+th:hover{color:var(--blue)}
+th.sorted{color:var(--blue)}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--blue-light)}
+tbody tr.urgent-row{border-left:3px solid var(--urgent)}
+tbody tr.paper-row{border-left:3px solid var(--paper)}
+td{padding:10px 12px;vertical-align:middle}
+
+.conf-name{font-weight:600;font-size:13px;color:var(--text);max-width:220px;white-space:normal;line-height:1.35}
+.tag{display:inline-block;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;padding:1px 5px;border-radius:3px;margin-top:3px}
+.tag-us{background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid)}
+.tag-eur{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.tag-paper{background:var(--paper-bg);color:var(--paper);border:1px solid #ddd6fe;margin-left:3px}
+.tag-27{background:#fef9c3;color:#854d0e;border:1px solid #fde68a;margin-left:0}
+.tag-nocfp{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1}
+.loc-cell{color:var(--muted);font-size:11px;white-space:nowrap}
+.dl-cell{font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+.dl-urgent{color:var(--urgent);font-weight:600}
+.dl-soon{color:var(--planning);font-weight:500}
+.dl-ok{color:var(--text)}
+.dl-na{color:var(--muted)}
+.dl-past{color:var(--muted);text-decoration:line-through}
+.time-cell{font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap;color:var(--muted);font-style:italic}
+.time-set{color:var(--text);font-style:normal}
+.mal-cell{font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+.mal-urgent{color:var(--urgent);font-weight:600}
+.mal-soon{color:var(--planning);font-weight:500}
+.mal-ok{color:var(--text)}
+.mal-na{color:var(--muted);font-style:italic}
+.db{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.db-urgent{background:var(--urgent-bg);color:var(--urgent);border:1px solid #fed7aa}
+.db-soon{background:var(--planning-bg);color:var(--planning);border:1px solid #fcd34d}
+.db-ok{background:var(--submitted-bg);color:var(--submitted);border:1px solid var(--blue-mid)}
+.db-past{background:var(--monitoring-bg);color:var(--muted);border:1px solid var(--border)}
+.db-paper{background:var(--paper-bg);color:var(--paper);border:1px solid #ddd6fe}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap}
+.pdot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.pill-accepted{background:var(--accepted-bg);color:var(--accepted);border:1px solid #a7f3d0}
+.pill-accepted .pdot{background:var(--accepted)}
+.pill-submitted{background:var(--submitted-bg);color:var(--submitted);border:1px solid var(--blue-mid)}
+.pill-submitted .pdot{background:var(--submitted)}
+.pill-planning{background:var(--planning-bg);color:var(--planning);border:1px solid #fcd34d}
+.pill-planning .pdot{background:var(--planning)}
+.pill-monitoring{background:var(--monitoring-bg);color:var(--monitoring);border:1px solid var(--border)}
+.pill-monitoring .pdot{background:var(--monitoring)}
+.pill-missed{background:var(--missed-bg);color:var(--missed);border:1px solid #fecaca}
+.pill-missed .pdot{background:var(--missed)}
+.pill-ready{background:var(--ready-bg);color:var(--ready);border:1px solid #a5f3fc}
+.pill-ready .pdot{background:var(--ready)}
+.pill-rejected{background:var(--rejected-bg);color:var(--rejected);border:1px solid #fca5a5}
+.pill-rejected .pdot{background:var(--rejected)}
+.pill-not-pursuing{background:var(--not-pursuing-bg);color:var(--not-pursuing);border:1px solid #cbd5e1}
+.pill-not-pursuing .pdot{background:var(--not-pursuing)}
+.pill-pass{background:var(--passed-bg);color:var(--passed);border:1px solid #fcd34d}
+.pill-pass .pdot{background:var(--passed)}
+
+/* Status legend */
+.legend-wrap{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 40px;background:var(--surface);border-bottom:1px solid var(--border);font-size:10px}
+.legend-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-right:4px}
+.legend-item{position:relative;display:inline-flex;align-items:center;gap:4px;cursor:default}
+.legend-item .tt{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:10px;font-weight:400;white-space:normal;max-width:220px;padding:5px 8px;border-radius:4px;z-index:200;pointer-events:none;line-height:1.4}
+.legend-item .tt::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--text)}
+.legend-item:hover .tt{display:block}
+/* Tooltip anchored to right edge for items near left of viewport */
+.tt-left{left:auto!important;right:0!important;transform:none!important}
+.tt-left::after{left:auto!important;right:12px!important;transform:none!important}
+
+/* Row flag for conf-date-passed-but-submitted */
+tbody tr.stale-row td:first-child::after{content:'⚠';margin-left:6px;font-size:10px;color:var(--planning);}
+.presenter-cell{color:var(--blue-dark);font-size:11px;max-width:130px;white-space:normal;line-height:1.4}
+.presenter-empty{color:var(--muted)}
+.link-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;background:var(--blue-light);color:var(--blue);text-decoration:none;border:1px solid var(--blue-mid);transition:all 0.12s;font-size:12px}
+.link-btn:hover{background:var(--blue);color:#fff}
+.notes-cell{color:var(--muted);font-size:11px;max-width:160px;white-space:normal;line-height:1.4}
+.paper-dl-cell{font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+.pdl-urgent{color:var(--paper);font-weight:600}
+.pdl-na{color:var(--muted)}
+
+/* Presentation detail cell */
+.pres-detail{font-size:11px;color:var(--blue-dark);max-width:160px;white-space:normal;line-height:1.4}
+.pres-detail-empty{color:var(--muted)}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,30,50,0.4);z-index:100;backdrop-filter:blur(3px);align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:640px;max-width:92vw;max-height:90vh;overflow-y:auto;padding:32px;position:relative;box-shadow:var(--shadow-md)}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;transition:color 0.12s}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-size:18px;font-weight:600;margin-bottom:20px;padding-right:30px;line-height:1.3}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.modal-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px}
+.mf label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:4px}
+.mf .val{font-size:13px;color:var(--text);font-weight:500}
+.msec{border-top:1px solid var(--border);padding-top:14px;margin-top:6px}
+.msec h4{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px}
+.ef{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:7px 10px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:12px;outline:none;transition:border-color 0.15s}
+.ef:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-light)}
+.mal-preview{background:var(--paper-bg);border:1px solid #ddd6fe;border-radius:4px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);font-weight:500}
+.modal-actions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.btn{padding:8px 16px;border-radius:5px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.12s;border:none}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+
+/* Roadmap panel */
+.roadmap-wrap{padding:16px 40px 0;display:none}
+.roadmap-wrap.open{display:block}
+.roadmap-panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+.roadmap-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.roadmap-hdr-left{display:flex;align-items:center;gap:10px}
+.roadmap-hdr-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue)}
+.roadmap-toggle-btn{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:color 0.12s}
+.roadmap-toggle-btn:hover{color:var(--text)}
+.roadmap-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.roadmap-col{padding:14px 16px;border-right:1px solid var(--border)}
+.roadmap-col:last-child{border-right:none}
+.roadmap-col-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px}
+.roadmap-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;font-size:12px;line-height:1.4}
+.roadmap-item:last-child{margin-bottom:0}
+.ri-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ri-done{background:var(--accepted)}
+.ri-pending{background:var(--planning)}
+.ri-waiting{background:var(--muted)}
+.ri-alert{background:var(--urgent)}
+.roadmap-show-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 9px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all 0.12s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.roadmap-show-btn:hover{border-color:var(--blue);color:var(--blue)}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;overflow:hidden}
+.tag-archived{background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1}
+tbody tr.archived-row{opacity:0.7}
+.archived-banner{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 16px;margin-bottom:12px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+
+@media(max-width:900px){
+  .summary-bar{grid-template-columns:repeat(3,1fr)}
+  .table-wrap,.controls,.header,.alert-wrap,.year-tabs,.roadmap-wrap,.legend-wrap,.scroll-mirror-wrap{padding-left:16px;padding-right:16px}
+  .header{padding:0 16px;height:auto;min-height:56px;flex-wrap:nowrap;overflow:hidden}
+  .app-subtitle{display:none}
+  .app-title{font-size:13px}
+  .date-display{display:none}
+  .badge-paper .badge-label-long{display:none}
+  .roadmap-show-btn{padding:3px 7px;font-size:10px}
+  .header-right{flex-shrink:0;gap:4px}
+  #scoutBtn{font-size:10px;padding:3px 6px}
+  /* Hide Málaga CEST column on mobile — show status picker instead */
+  .col-mal{display:none}
+  /* Also hide alert .a-mal divs */
+  .a-mal{display:none}
+}
+@media(max-width:600px){
+  .summary-bar{grid-template-columns:repeat(2,1fr)}
+  .roadmap-body{grid-template-columns:1fr}
+  .roadmap-col{border-right:none;border-bottom:1px solid var(--border)}
+  .roadmap-col:last-child{border-bottom:none}
+}
+
+/* KPI Tab */
+.kpi-wrap{padding:20px 40px}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+.kpi-val{font-size:32px;font-weight:700;font-family:"IBM Plex Mono",monospace;margin-bottom:4px}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.kpi-section{margin-bottom:24px}
+.kpi-section-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);border-bottom:2px solid var(--blue-mid);padding-bottom:8px;margin-bottom:12px}
+.log-table{width:100%;border-collapse:collapse;font-size:12px}
+.log-table th{background:var(--surface2);padding:8px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);border-bottom:1px solid var(--border)}
+.log-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.log-table tr:hover td{background:var(--surface2)}
+.log-deliverable{display:inline-block;background:var(--paper-bg);color:var(--paper);border:1px solid #ddd6fe;border-radius:3px;padding:1px 6px;font-size:10px;font-weight:600;margin:1px}
+.rate-bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-top:6px}
+.rate-fill{height:100%;border-radius:4px;background:var(--accepted)}
+.rate-label{font-size:11px;color:var(--muted);margin-top:4px}
+.year-rate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.year-rate-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px}
+.yr-label{font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px}
+
+/* Inline status picker */
+.status-picker{position:relative;display:inline-block}
+.status-pill-btn{cursor:pointer;border:none;background:none;padding:0;font-family:inherit;display:inline-flex;min-width:60px}
+.status-pill-btn:hover .pill{filter:brightness(0.93)}
+.status-dropdown{display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,0.18);z-index:2000;min-width:152px;overflow:hidden;max-height:320px;overflow-y:auto}
+.status-dropdown.open{display:block}
+.status-opt{padding:8px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.status-opt:hover{background:var(--surface2)}
+.status-opt .pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Dual scrollbar — top mirror bar */
+.scroll-mirror-wrap{overflow-x:auto;overflow-y:hidden;height:12px;margin-bottom:-12px}
+.scroll-mirror-inner{height:1px}
+.tag-pursue-yes{background:#f0fdf4;color:#16a34a;border:1px solid #86efac;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.tag-pursue-maybe{background:#fffbeb;color:#d97706;border:1px solid #fcd34d;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.tag-pursue-no{background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.tag-muni{background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.tag-ind{background:#ecfeff;color:#0e7490;border:1px solid #a5f3fc;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.tag-pre{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.tag-dew{background:#fffbeb;color:#b45309;border:1px solid #fde68a;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap}
+.f-muni{background:#f5f3ff;border-color:#7c3aed;color:#7c3aed;font-weight:600}
+.f-ind{background:#ecfeff;border-color:#0e7490;color:#0e7490;font-weight:600}
+.f-pre{background:#f0fdf4;border-color:#15803d;color:#15803d;font-weight:600}
+.f-dew{background:#fffbeb;border-color:#b45309;color:#b45309;font-weight:600}
+.tag-history{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:10px;display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-area">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCAAkAO0DASIAAhEBAxEB/8QAHQAAAwEAAwADAAAAAAAAAAAAAAYIBwQFCQECA//EAE4QAAEDAwIDAQgLDQUJAAAAAAECAwQFBhEABwgSITEJExQiQVFhgRUZMkJxkZSVtNLTFxgjNzhSVVdYdXah0RY0NlayJENUYnJ0krPw/8QAGQEAAgMBAAAAAAAAAAAAAAAAAAUDBAYC/8QAMxEAAQMDAgQFAwMDBQAAAAAAAQIDBAAFERIhMUFRYQYTIjJxgZGhFUKxFCPhFlKC8PH/2gAMAwEAAhEDEQA/ALMsfjj2Uvq6qfaMVFepcmpu+DsSKlFaaj99PuEKWlxRSVHCRkYyQCRnVCduvKfYLYo75UK+oVKd71cNEiRJtIKnOVt1ZW6Fsr8g5wkAK96oJPZnVf8AB/xETL8p721O4rrse9bcSpn/AGscr05ho8quYHr39sjlWO0gBXXxsbXxB4fjxNa4BJ8vGtJ3IyMhQ7b4PSsL4b8RyZmhFxAHm50KGwODgpPfbI65qmdIe8G9VjbIW8zcV6yZHJKfEeLEiIS5JkL7VciCpIwkdVEkAdPKQCw3redvbfWvUbwumemHTKYyXn3D1J8gSke+WokJSntJIGoLi29d3FzXLy3xvhmRBs62KXOFIhBZCVONMrW3HQR28quVx5Y90rCR09yps1rRMJkSjpZRxPMk8EjufwKcXy7OQgI0Qan15wOQA4qV2H5NWPsrv1Zm+9OqdUs2FVo7VKkIjPioMIaUVLRzDl5VqyMfBrj747403aODTKXAp/s1d9yvmHQKKhzkMhz3zrq+ve2GwcrXgnyAEnpg/c2Sf7G3mc9TVIvx+DnSrYVcc3k4zb0uyouF6PQadNp1EbUchqOy8hjKQezm5nVn0uHU861sxbg+2gf22hnB57DAz8nftUVtuj8y3R3VkeY6cZHLc5OPgbd6brjmX/cA57sumXVJjpytqPzMQ21H3rLCTgJHYCsqWe1Sjpfj7b3Ml0TodXTS3knmStD60uJPnyjs+PVL2jttT5zy6vWWitoKKGWQSAvHapRHXGegHoOmuft7Z1QjGK7Q2G0kYCmctrHpBB0tQ+yk/wB0E/GMCmMhqWr0xsJA5nJJ/wC98k1P9kb2X9t5Oapu401Fx0BRCFVFolcuEPz1DALqB5cgqA6gnsNOxJUadFZmw32348hCXWnW1BSVoUMpUCO0EEHOpB37sCr7bkVeHJcmUV5wNh1Q/CR1n3KV46EHrhXnGD1xnReDy/V3PZVStl9znXbstKWcn3Md4FSE/AFJcA8wwPJqWZDbLAlRzlPOoYE18vGLLGFcj1pnsPiUsHcTc2sbU0KBW2qxRPC/CXZMdtEdXg7oaXyqCyTlShjKR082tX1BvCx+WnuH8Ne+nt6vLUl9gM2+SlpnOClJ36kb1H4euD1yiqefxkLUnboDtRrP9597LS2Lt6Fct4RKpIizpogtpp7KHFhwtrXkhS0jGEHy9uNaBqTu6Ofiltz+I0fRX9QWaI3OntR3fao4OKsXyY7Atzsln3JGRn5Fc/2xLYv9CXh8gY+20e2J7F/oW8PkDH2+mHZKxdh5uz1lTK5aNiP1F+gwnJTsqHDU8t0spKisqHMVE9ueudO33POHH/JO3XyGD/TTZ79FZcU3/TuHBI9w5fSkzH66+0l0SWxqAPt6/Ws+tHjt2bvS6aRaNJpF1Im1qazAjqfhMpbS46sJSVEPEgZIyQDqjNKFO2h2lpkyNVaVtnakWVGcS/HkR6RHQ40tJylaFJTkEHBBGm/SSe5DcUDCQpI56jnen1ubnNoInLSo8tIxtXEq9Wp1BpUyt1eUiNBgMOSZLyzhLbSElSlH0AAnWE2Dxu7M7h3hTLKpke4IMyrveDxXp8RptgukEoQVJcUQVEco6dpA6Z0jcfW7cinUCnbK20tbtUuZSH6g2z1X4IF4aZAHXLro7PzUEe+1nG+PCe5thsLa17W+goue18SLjkRz46y8sK76kj/h3OVII95kns1oLVZYTkZtU9RSt4kN45YHuPYqwPt1rO3a+Tm5TiLekKQwApzPPJ9o7hOT9+legOl+/r2pG3NnVa966zKdgUeOZMhEVAW6pAIHigkAnqO0jSlw67tx959rKVdi1oFUaT4FVmk9O9zGwAs48gWClwehY82uJxWfk735+6F/60aQNQlInphyBg6wk/fBrROzkrt6psc5GgqH2yKzY90S2MBwaJeHyBj7bXx7YnsX+hbw+QMfb6VuCS0to61s5ImXxbdpTqiK5LQHapGjOPBoIa5Rlwc3LknHk7dUB9zvhy/yRt18hg/01oJrNmhSFxyw4dJxnV/is1Aevk+MiSJDY1DOCnh+ayc90U2LAJNFvDoM/wBwY+31re52/VmbT2LSdwrkh1Z6m1l1hmOiGwhbwU6yp1PMlS0gDlSc4J665sXZrY+dHTJh7XWS+y4DyuNUeKtKvIcEJwdYd3Q6OxF2RoEWMyhllq44zbbaEhKUJEZ8AADsAAxjVSMzbLjOZjMNqSCcKyrP222q5Jfutst78qQ4hZSnKcJx9+tcr2xLYv8AQl4fIGPttHtiexf6FvD5Ax9vpr4fto9qaxslZFUq+21rTZsqhxXX5EiksOOurKBlSlKTlRPnOtA+4jsx+qezvmSN9TXb7liYdU0WXPSSPcORx0riO34gkNJdD7Y1AH2HmM9azSzeObYS76sxR3KnVaE5JWG2navDDTBUTgAuoWtKPhVgenWm3Du9Zlr1h6h1V+YJDKG1qLURbiMLGRhQ7emPj1NfHDshtNbW1yb5ty16Xb9YjVGNGb9j2Ux0S0OEhbam04SohIKwcZHIfITrZeEerVG4eHezalXAX5SYjsQOujKlssvuNtZJ6nCEpHq1zNg28QkXGKFaCrQUkjIOM5BwdsV1Bn3H+uXbJak6wkLCgDgjOMEZGDk1OXc2v8TX3/2MH/2u6eeL/YutU+pMcRu0YdhXJQVpl1VEVPjuobHSUlPvlIT0cT2Lbzn3J5uj7n7Yl72fcV6PXZZ9aorcqFCSwuoQHY4dKXHSQkrAyQCM48+rTUlK0lKgCCMEHy6u3u5qgX5clghQwkEcQoaRkGqNgtSZ/h5uLIBScqIPApOo4I7ivPaTem4/HbelvWJGhqoFsUWOzNri2Fc7SXsYcfye1R6oZbOcZUTnxiLJum1KDY+xVwWnbNPbhUyl2zPjxmUe9SIzmST5VE5JUepJJPbrt9v9sLH2vhT4Fj0FimM1Oc7UJKW+vO6s9mT2ISPFSkdEjoNfruZFkztt7rhQo7siRIoc9plppBUtxao6wlKQOpJJAAGls66NzH2mIqdDCCMJ7k7k9/4H1prb7S5CYdflq8x9YOpXYDZI7fyfpUt9zY/wbeX70ifR9ZFt1Ln7M77TqtMjuLRBq0+DUW0jxlx1uqSvHnI8VY85SPPrde5+Wbdtn2ldse7bXq1Fdk1GMtlFQhuR1OJDBBKQsDIB6ZGuVxMbUGlXEvdGnwVu0ycECr95RzGK8AEh8pH+7UAAo+9UAT0V0Z3KWyLxJbWcoXgZ/wCI/wA0ttUV79FjLQDrRk45+48qpS2qjTarRIk6kympMR5HO060cpWk9QR/96NdnqSNsrskWyx3637ujtRlnmWwXkKbUfOUK7D6eh081DeqsT2zBj1WMCscqlRG8HH/AF5OPVrPPW4tnIWNPWnke8B/0eWrX0xt9+X1p63Yg0y8bJumgvFC2lUyS2VfmuobUtKh6UrSPWNTp3OkS6k3fNfXnwZSqdESfIpwJdcUB8AWj/yGmDczcSqUiwJNr2lDdqV2Xa05RKDTmOrr77qSlxz0NtIUpa1nxU9MnrrY+HTZyLsZtXSrHS+3JqAzMqklsHlfmOY74U568qQEoT/yoHl1IlzyIC0H95GPgcT/AAP/ACpVtl6c2r/YDn5PAfyfj5qWeFj8tPcP4a99Pb1eWvN6mq372e4gb23CsvZyt1czqlVYzRk0aW5HcYdl84cSWwM55E4OcEHWk/fX8YP7N5+Yal9bWlvlofub6H46k6dCRuoDcD5rI2C9R7VHXHkpWFa1HZBOxPxVsak7ujn4pbc/iNH0V/Sx99fxg/s3n5hqX1td7xd03cTdHh3sGoNWPVH7glzos+pUynwHnFxFqhu86S3grQEqVy+N1BwD11StdretdyjuyFJwVclA8jxxV+7Xdi72uS1GSrITzSRzHDPGlDbbgEtC+tvrcvSVf9YjPVylxqg4y3CYUltTrYUUgnqQCcZOmM9zYsggj7pNc6jH9wjaVLK4heLSxrRo1m03h3kPxKJBZgMOv0Go98WhtASCrlUBkgdcADXdffX8YP7N5+Yal9bTh9XiEuqLUhOnJx6kcM7Ulj/6bS0gOx1asDPpXxxv+atGBETBhR4SFlSY7SGgojBISkDP8tcK6blpFnW5Urpr0oR6dSorkuS4fetoTk485PYB5SQNR8xxWcXzjzaHOHEpSpaUqPsDUugJ6n3WmfjlqG5l00qkbS7eWVcFUYqbjcyrSocB1xggLwxHLgHKPHHfFZPQJRntOsyiwPJltMSFJAWTkhQOAOPx26mtSvxGwqG6/GQolAGAUkZJ4Ade/QVNe3m9Nl1fiKm75b0moLQ28ubToUSL4RyPDCI6D4wwllsAjzrSk+fVR1bjs4dK5S5dFq0O5JMGew5GksrpOUuNLSUqSfwnYQSNO23nChs7atk0eg3DYFv1uqxIqEzqhLgodckSD1cVzKGeXmJCR5EgDTF97hsL+qC0/mtr+mmdxu1mmPBSm3MIASnBAAA4YFKrZZ75CYKUuN5WdStQJJJ45PPpUR8Ie71E2u3vmWjBqsh6zLsleARnpbfelocCj4I84nJCVHm72rrjxwewasvis/J3vz90r/1o1jvFvwqW7JsBi59nbDjQazQ5AW9Do0PkcmxlkJVhCBlS21cqxjrjn0x1KubgbocG1wRbis6vMXg3SV02XCfpzqJEt9tSMOttlPMsOJwrxR7rmHk1LOcjXKRGusc49aUrBIzkEYUfkcTw4VFbm5VrjybPJGfQpSCAcEEHKR8HgOPGp74buD+299dvnr1q14VKmPt1N+B3iPFZcSUtpQQrK+uTz/y1qvtbNkfrJrnyCNrMNl9zeKHY60XLMtrYKpT4jk52cXZ1CnlzncCQR4hSMeIPJ59Pv31/GD+zefmGpfW01nrvq5S1RX0hvPp9SOH1pRbU+H0RG0y46i4B6vSvj9KqnaTbmFtLt5R9vKdUX58ekJdSiQ82lC187q3DlKegwVkdPNrBu6K/iYov8SsfRpGk8cV/GDn8m8/MNS+truuKBjczdvhisqpyLBqf9pZdWjzKhSYFPfU5F/AyEnLRBWkDKfdfnDz6RwbfJhXRmVMUk6l7kKB3OSSccKfT7lFn2h+JCQoaUbApI2GAAM8az7bTZbjJrm39v1ey94m6dQZlPZep0Q1yQ0WI5T4iORLRCcDpgE67eubK8eNEo82sDeKRUPAmFv8AgsKvPrfeCRkpbSpoBSiB0GRns1U/D7TajR9kbIpdWgSIU2LQ4rT8eQ0W3WlhHVKkq6pI8x1oPbqGV4kfbkrAbbICj+wbjPWp4vheO5FQS64CUj952OOnbpXmPspYd08W92O0vcTeaoq9hG0yTEmvOyJTrBOFqjhZ72jB5UqUckcyTynXpJa9s0azbdp1q29DTFptKjIixWUnPK2gYGT2k+Uk9SST5dRpxE7IX9tPvBS9+Nh6BOmGZML8yBToy3ixKIJd5m0DPeH0lQVjoFFXZzJxYdkXOq8bUplyuUWo0h2cwlx2BUI62ZEVzsW2tKgDkKBGcYIwR0Ou/EskzmmZDCh5JGyBgaFcwQPwfnG3HjwtFEB16NIQfPB3WcnWnkQT+R8fTvNGjRrI1s6NGjRooo19XG23m1MuoStC0lKkqGQoHtBB7Ro0aKKnTerYfb2h0x67behyaVIWvKo8VwCMSe0hCknl+BJA9GsjsmL7IVBuE5IdQhSwnmRjI6+kEfy0aNXmfUkZqFe2cVW1jbVWdZElys0yE5JrEthLT1Tmr79KU1nIaSrADbeevI2EpJ6kE9dOejRqq8SVnNdNABAxR6zo9Z+PRo1HUlHrPx6NGjRRR6z8ej1n49GjRRR6z8ejRo0UUaNGjRRRo9ejRooo9Z+PR6z8ejRooo9Z+PRo0aKKNGjRooo0aNGiiv/Z" style="height:36px;" alt="Moleaer">
+    <div class="logo-divider"></div>
+    <div>
+      <div class="app-title">WP Conference<br><span style="font-size:11px;font-weight:500;opacity:0.8">Intelligence Agent</span></div>
+      <div class="app-subtitle">Abstract &amp; Submission Management · Water Process</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="roadmap-show-btn" onclick="toggleRoadmap(this)">▸ Project Roadmap</button>
+    <button class="roadmap-show-btn" id="scoutBtn" onclick="copyScoutPrompt()">🔍 Scout <span id="scoutYear"></span></button>
+    <button class="roadmap-show-btn" id="exportBtn" onclick="exportSession()" title="Export session changes for Claude to re-import">💾 Export</button>
+    <span class="date-display" id="currentDate"></span>
+  </div>
+</header>
+
+<div class="year-tabs" id="yearTabs">
+</div>
+<div id="kpiSection" style="display:none"></div>
+
+<div class="legend-wrap" id="legendBar">
+  <span class="legend-label">Status:</span>
+  <span class="legend-item"><span class="pill pill-monitoring"><span class="pdot"></span>Monitoring</span><span class="tt">CFA not yet open, or deadline too far to act. Watching this conference passively.</span></span>
+  <span class="legend-item"><span class="pill pill-planning"><span class="pdot"></span>Planning</span><span class="tt">CFA is open and we intend to submit. Abstract is being drafted — deadline is approaching.</span></span>
+  <span class="legend-item"><span class="pill pill-submitted"><span class="pdot"></span>Submitted</span><span class="tt">Abstract sent in. Awaiting acceptance or rejection decision from conference organizers.</span></span>
+  <span class="legend-item"><span class="pill pill-accepted"><span class="pdot"></span>Accepted</span><span class="tt">Abstract accepted by the conference. Deliverables (paper, presentation, poster) may be required.</span></span>
+  <span class="legend-item"><span class="pill pill-ready"><span class="pdot"></span>Ready</span><span class="tt">All pre-conference deliverables submitted. Ready to present — conference has not yet occurred. Will auto-archive once conf date passes.</span></span>
+  <span style="color:var(--border);margin:0 2px">|</span>
+  <span class="legend-item"><span class="pill pill-missed"><span class="pdot"></span>Missed</span><span class="tt">Abstract deadline passed before we could submit — we intended to but ran out of time.</span></span>
+  <span class="legend-item"><span class="pill pill-rejected"><span class="pdot"></span>Rejected</span><span class="tt">Abstract was submitted but not selected by the conference review committee.</span></span>
+  <span class="legend-item"><span class="pill pill-not-pursuing"><span class="pdot"></span>Not Pursuing</span><span class="tt">Actively decided not to submit to this conference this year — not a missed deadline.</span></span>
+  <span class="legend-item"><span class="pill pill-pass"><span class="pdot"></span>Pass</span><span class="tt">Conference has occurred but we did not participate (no submission or attendance).</span></span>
+  <span style="color:var(--border);margin:0 2px">|</span>
+  <span class="legend-item" style="cursor:pointer" onclick="setYear('archived',document.querySelectorAll('.year-tab')[2])">
+    <span style="font-size:10px;color:var(--muted);font-weight:600">📁 Archived</span>
+    <span class="tt">Conference date has passed — auto-moved here. Organized by year. Click to view.</span>
+  </span>
+</div>
+<div class="roadmap-wrap" id="roadmapWrap">
+  <div class="roadmap-panel">
+    <div class="roadmap-hdr">
+      <span class="roadmap-hdr-title">⚙ Project Roadmap &amp; Status</span>
+      <button class="roadmap-toggle-btn" onclick="toggleRoadmap()">▴ Hide</button>
+    </div>
+    <div class="roadmap-body">
+      <div class="roadmap-col">
+        <div class="roadmap-col-title">Priorities</div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>WEFTEC speaker portal confirmations complete ✓</strong> — Riley (Meister) &amp; Andrea (BNR) confirmed May 26. Papers due Jul 8.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>1.</strong> Style library built — 58-section style guide v5.1 uploaded. ✓</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>2.</strong> Tracker: 78 conferences, statuses current, KPI tabs for 2025 &amp; 2026. ✓</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-alert"></div><span><strong>3.</strong> NC One Water — Greer abstract submitted by Gary (Xylem) May 26. ✓ Awaiting decision mid-Aug.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>4.</strong> ⚡ IWS Jun 10 (John — panel, no PPT) &amp; EWWM Jun 17 (Cesar — PPT done). Confirm travel.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-alert"></div><span><strong>5.</strong> ⚡ NEWEA 2027 abstract due <strong>Jun 12</strong> (11 days). Topic &amp; presenter TBD.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-pending"></div><span><strong>6.</strong> ⚡ IWC first draft paper due <strong>Jul 1</strong> (30 days). John Crisman — v3 draft ready for review.
+        </span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-alert"></div><span><strong>7.</strong> ⚡ WEFTEC papers due <strong>Jul 8</strong> (37 days) — Riley (Meister) &amp; Andrea (BNR/Yucaipa).
+        </span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-pending"></div><span><strong>8.</strong> SCEC 2027 CFA opens July 2026 — prepare Greer abstract.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-pending"></div><span><strong>9.</strong> IWA LWWTP 2027 CFA open — deadline Sep 30, 2026. Assign presenter + topic.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-alert"></div><span><strong>⚡ NVWEA 2027</strong> CFA OPEN — deadline <strong>Sep 18, 2026</strong>. Feb 2027, Grand Sierra Resort, Reno NV. Riley: Yucaipa, LOTT, NapaSan. <a href="https://www.nvwea.org/conferenceabstract" target="_blank" style="color:var(--blue)">Submit →</a></span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-pending"></div><span><strong>10.</strong> Collect remaining 2027 team feedback (Riley, John, Sarah, Cesar).</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>11.</strong> U.P. Water &amp; NE-AWWA confirmed not submitted 2026 — reverted to monitoring. ✓</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-waiting"></div><span><strong>12.</strong> M365 OAuth approval (IT) → Outlook + SharePoint + calendar integration.</span></div>
+      </div>
+      <div class="roadmap-col">
+        <div class="roadmap-col-title">2026 Season Status</div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>Presented:</strong> NEWEA ✓, MRWA ✓, Rocky Mtn ✓, WEAU ✓, CWEA ✓, Water Works 360 ✓, WEF RBTT (CWS &amp; Greer) ✓, CSWEA ✓.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>Presenting Jun:</strong> IWS Jun 10 (John), EWWM Jun 17 (Cesar) ✓ — EWWM folder confirmed Won.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>IWC accepted ✓</strong> — Meister Cheese. John Crisman presenting Nov 12. Paper due Jul 1.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>PNCWA accepted ✓</strong> — LOTT Budd Inlet. Riley + LOTT. Sep 13–16. Awaiting LOTT speaker bios.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>WEFTEC 2 accepted ✓</strong> — Meister (Riley) &amp; BNR/Yucaipa (Andrea). Portal confirm due Jun 1. Paper due Jul 8. 2 still pending (LOTT, Greer).</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-pending"></div><span><strong>Awaiting decisions:</strong> WEFTEC (2 pending: B&amp;V LOTT, Greer), WI Wastewater Ops, NVWEA, NC One Water (Gary/Xylem submitted May 26, decision mid-Aug).</span></div>
+                <div class="roadmap-item"><div class="ri-dot ri-done"></div><span><strong>PNCWA commitment form submitted ✓</strong> — Riley, Paul Jue &amp; Stephen Taylor (LOTT). Sep 13–16, Spokane.</span></div>
+        <div class="roadmap-item"><div class="ri-dot ri-waiting"></div><span><strong>M365 integration</strong> — IT approval pending.</span></div>
+      </div>
+      <div class="roadmap-col" id="cfaAlertCol">
+        <!-- Rendered dynamically by renderCfaAlerts() -->
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:8px;align-items:center">
+      <button class="roadmap-show-btn" id="scoutBtn" onclick="copyScoutPrompt()" style="font-size:11px">🔍 Scout <span id="scoutYear"></span></button>
+      <button class="roadmap-show-btn" onclick="copyUpdatePrompt()" style="font-size:11px" id="updateBtn">🔄 Update Roadmap Prompt</button>
+      <button class="roadmap-show-btn" onclick="openRoadmapEditor()" style="font-size:11px">✏️ Edit Roadmap</button>
+    </div>
+  </div>
+</div>
+
+<div id="archivedSubTabs"></div>
+
+<!-- Roadmap Editor Modal -->
+<div id="roadmapEditorOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.18);width:700px;max-width:95vw;max-height:85vh;overflow:auto;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:600;color:var(--text)">✏️ Edit Project Roadmap</div>
+      <button onclick="closeRoadmapEditor()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);display:block;margin-bottom:6px">Priorities (one per line)</label>
+        <textarea id="rm-priorities" rows="12" style="width:100%;box-sizing:border-box;font-family:'IBM Plex Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:8px;resize:vertical;line-height:1.6;background:var(--surface);color:var(--text)"></textarea>
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);display:block;margin-bottom:6px">2026 Season Status (one per line)</label>
+        <textarea id="rm-status" rows="12" style="width:100%;box-sizing:border-box;font-family:'IBM Plex Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:8px;resize:vertical;line-height:1.6;background:var(--surface);color:var(--text)"></textarea>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--muted)">Prefix lines with <strong>✓</strong> = done &nbsp;|&nbsp; <strong>→</strong> = pending &nbsp;|&nbsp; <strong>⏳</strong> = waiting/blocked. Blank lines become dividers.</div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
+      <button onclick="closeRoadmapEditor()" style="background:none;border:1px solid var(--border);border-radius:4px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;color:var(--text)">Cancel</button>
+      <button onclick="saveRoadmapEdits()" style="background:var(--blue);color:#fff;border:none;border-radius:4px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Prompt Copy Modal (fallback for mobile clipboard) -->
+<div id="promptCopyOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.18);width:680px;max-width:95vw;max-height:85vh;overflow:auto;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:var(--text)" id="promptCopyTitle">Prompt</div>
+      <button onclick="document.getElementById('promptCopyOverlay').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Clipboard copy failed (common on mobile). Long-press the text below and select all → copy, then paste into Claude.</div>
+    <textarea id="promptCopyText" rows="14" readonly style="width:100%;box-sizing:border-box;font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid var(--border);border-radius:4px;padding:10px;resize:vertical;line-height:1.5;background:var(--surface2);color:var(--text)"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+      <button onclick="document.getElementById('promptCopyOverlay').style.display='none'" style="background:none;border:1px solid var(--border);border-radius:4px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;color:var(--text)">Close</button>
+      <button onclick="copyPromptFromModal()" style="background:var(--blue);color:#fff;border:none;border-radius:4px;padding:6px 16px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:600" id="modalCopyBtn">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+<div class="summary-bar" id="summaryBar"></div>
+<div id="alertSection"></div>
+
+<div class="controls">
+  <div class="search-box">
+    <span style="color:var(--muted)">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search name, city, presenter…">
+  </div>
+  <div class="filter-group">
+    <span class="sec-label">Filter:</span>
+    <button class="fb f-all" onclick="setFilter('all',this)">All</button>
+    <button class="fb" onclick="setFilter('accepted',this)">✓ Accepted</button>
+    <button class="fb" onclick="setFilter('submitted',this)">→ Submitted</button>
+    <button class="fb" onclick="setFilter('planning',this)">◎ Planning</button>
+    <button class="fb" onclick="setFilter('monitoring',this)">◌ Monitoring</button>
+    <button class="fb" onclick="setFilter('missed',this)">⚡ Missed</button>
+    <button class="fb" onclick="setFilter('rejected',this)">✕ Rejected</button>
+    <button class="fb" onclick="setFilter('not-pursuing',this)">— Not Pursuing</button>
+    <button class="fb" onclick="setFilter('pass',this)">↷ Pass</button>
+    <button class="fb" onclick="setFilter('ready',this)">✅ Ready</button>
+    <button class="fb" onclick="setFilter('urgent',this)">⚡ Urgent</button>
+    <button class="fb" onclick="setYear('archived',document.querySelectorAll('.year-tab')[2])">📁 Archived</button>
+  </div>
+  <div class="filter-group" style="margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">
+    <span class="sec-label">Category:</span>
+    <button class="fb cat-filter-btn" onclick="setCatFilter('muni',this)" style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#7c3aed;flex-shrink:0"></span>Municipal</button>
+    <button class="fb cat-filter-btn" onclick="setCatFilter('ind',this)" style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#0e7490;flex-shrink:0"></span>Industrial</button>
+    <button class="fb cat-filter-btn" onclick="setCatFilter('pre',this)" style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#15803d;flex-shrink:0"></span>Pretreatment</button>
+    <button class="fb cat-filter-btn" onclick="setCatFilter('dew',this)" style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#b45309;flex-shrink:0"></span>Dewatering</button>
+  </div>
+  <div class="ctrls-r"><span class="count-badge" id="resultCount">--</span></div>
+</div>
+
+<div id="scrollMirrorWrap" class="scroll-mirror-wrap" style="padding:0 40px"><div id="scrollMirrorInner" class="scroll-mirror-inner"></div></div>
+<div class="table-wrap" id="tableWrap">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('name',this)">Conference ↕</th>
+        <th onclick="sortBy('location',this)">Location ↕</th>
+        <th onclick="sortBy('status',this)" class="col-status">Status ↕</th>
+        <th onclick="sortBy('deadline',this)" class="sorted">Abstract Deadline ↑</th>
+        <th>Deadline Time</th>
+        <th class="col-mal">Málaga CEST</th>
+        <th>Days Left</th>
+        <th>Deliverables Due</th>
+        <th>Presenter(s)</th>
+        <th>Presentation Details</th>
+        <th>Notes</th>
+        <th>Portal</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div style="font-size:32px;margin-bottom:10px">◌</div>
+    <p>No conferences match your filters.</p>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const TODAY = new Date();
+const DATA_LAST_UPDATED = "Jun 1, 2026"; // Baji feedback received & logged (27 attend, 10 maybe, 20 skip). IWC Meister abstract details. PNCWA LOTT bios pending. CFA Alert column added. IFAT Munich: Cesar + Baji attended. // Hardcoded — update each session when baking in changes
+const MALAGA_OFFSET = 2;
+const CUR_YEAR = TODAY.getFullYear();
+const NEXT_YEAR = CUR_YEAR + 1;
+
+const TZ = {'ET':-4,'EST':-5,'EDT':-4,'CT':-5,'CST':-6,'CDT':-5,'MT':-6,'MST':-7,'MDT':-6,'PT':-7,'PST':-8,'PDT':-7,'UTC':0,'GMT':0,'CET':1,'CEST':2};
+
+function toMalaga(dateStr, timeStr){
+  if(!dateStr||dateStr==='NA'||dateStr==='N/A'||dateStr==='')return null;
+  if(!timeStr||!timeStr.trim())return null;
+  const ts=timeStr.trim().toUpperCase();
+  const m=ts.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?\s*([A-Z]{2,4})?/);
+  if(!m)return null;
+  let h=parseInt(m[1]),min=parseInt(m[2]);
+  const ap=m[3],tz=m[4];
+  if(ap==='PM'&&h!==12)h+=12;
+  if(ap==='AM'&&h===12)h=0;
+  const off=(tz&&TZ[tz]!==undefined)?TZ[tz]:-4;
+  const [y,mo,d]=dateStr.split('-').map(Number);
+  const utcMs=Date.UTC(y,mo-1,d,h-off,min,0);
+  const malMs=utcMs+(MALAGA_OFFSET*3600000);
+  const md=new Date(malMs);
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const hh=md.getUTCHours(),mm=String(md.getUTCMinutes()).padStart(2,'0');
+  const ampm=hh>=12?'PM':'AM';
+  const h12=hh%12||12;
+  const nextDay=md.getUTCDate()!==d?` (${days[md.getUTCDay()]} ${months[md.getUTCMonth()]} ${md.getUTCDate()})` :'';
+  return{str:`${h12}:${mm} ${ampm} CEST${nextDay}`,date:md};
+}
+
+function getDays(dl){
+  if(!dl||dl==='NA'||dl==='N/A'||dl==='')return null;
+  const d=new Date(dl.split(' ')[0]);
+  if(isNaN(d))return null;
+  return Math.ceil((d-TODAY)/86400000);
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const C2026=[
+  {id:1,fullName:"New England Water Environment Association Annual Conference",cfaUrl:"https://www.newea.org/annual-conference/",name:"NEWEA",region:"US",confDate:"2026-01-26",deadline:"2025-06-13",deadlineTime:"",city:"Boston",state:"MA",country:"US",url:"https://www.newea.org/annual-conference/",notes:"Accepted. Topic: Nanobubble Pretreatment: Intensifying Nutrient Removal to Overcome Operational Challenges. Broad technology overview — multiple case studies. Presenter: John Crisman.",status:"complete",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"John Crisman",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:2,fullName:"Pacific Water Conference — AWWA/HWEA 13th Annual Joint Conference",cfaUrl:"https://www.hwea.org/",name:"Pacific Water Conference (AWWA/HWEA)",region:"US",confDate:"2026-02-14",deadline:"2026-02-10",deadlineTime:"",city:"Honolulu",state:"HI",country:"US",url:"https://www.hwea.org/",notes:"Accepted. Presented Jan 26 2026. Topic: Nanobubble Pretreatment: Intensifying Nutrient Removal to Overcome Operational Challenges. Presenter: John Crisman. §41 in style guide.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"]},
+  {id:3,fullName:"Energy Recovery Without Waste Conference",cfaUrl:"https://www.erwow.org/exhibitors.php",name:"ERWoW Conference",noCfp:true,region:"US",confDate:"2026-08-27",deadline:"NA",deadlineTime:"",city:"Yakima",state:"WA",country:"US",url:"https://www.erwow.org/exhibitors.php",notes:"Aug 25-27 2026, Yakima Convention Center, Yakima WA. Exhibitor only — no CFA.",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "dew"],pursueNextYear:"no"},
+  {id:4,fullName:"Michigan Rural Water Association Wastewater Conference",cfaUrl:"https://www.mrwa.net/events/wwconf2025",name:"MRWA Wastewater Conference",region:"US",confDate:"2026-02-17",deadline:"2025-12-19",deadlineTime:"",city:"Frankenmuth",state:"MI",country:"US",url:"https://www.mrwa.net/events",notes:"Won. Feb 2026, Bavarian Inn, Frankenmuth MI. Table-top format. Title: Nanobubble Technology: Enhancing Municipal Wastewater Treatment Performance. Presenters: John Crisman, Cody Ray. Covers activated sludge, lagoons, anaerobic digestion, polymer dewatering.",status:"ready",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"John, Cody",presDetails:"",cats:["muni", "pre"],pursueNextYear:"maybe"},
+  {id:5,fullName:"Rural Water Association of Utah Annual Conference",cfaUrl:"https://rwau.formstack.com/forms/annual_conference_cfp",name:"Rural Water Association of Utah",region:"US",confDate:"2026-09-16",deadline:"2026-06-01",deadlineTime:"",city:"St. George",state:"UT",country:"US",url:"https://rwau.formstack.com/forms/annual_conference_cfp",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:6,fullName:"Nevada Water Environment Association Annual Conference",cfaUrl:"https://www.nvwea.org/conferenceabstract",name:"NVWEA",region:"US",confDate:"2026-02-26",deadline:"2025-12-19",deadlineTime:"11:59 PM PT",city:"Las Vegas",state:"NV",country:"US",url:"https://www.nvwea.org/conferenceabstract",notes:"Abstract submitted 2026, awaiting decision. NVWEA 2027: CFA OPEN — abstract deadline Sep 18 2026. Conf Feb 2027, Grand Sierra Resort (GSR), Reno NV. Riley interested: Yucaipa, LOTT (pending summer data), NapaSan. Contact noreply@nvwea.org.",status:"submitted",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"maybe"},
+  {id:7,fullName:"Michigan Water Environment Association Biosolids Conference",cfaUrl:"https://www.viethconsulting.com/members/proposals/propselect.php?orgcode=MWEA&prid=1895001",name:"Michigan Water: Biosolids",region:"US",confDate:"2026-11-18",deadline:"2026-09-26",deadlineTime:"",city:"TBD",state:"",country:"US",url:"https://www.viethconsulting.com/members/proposals/propselect.php?orgcode=MWEA&prid=1895001",notes:"",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "dew"],pursueNextYear:"no"},
+  {id:8,fullName:"Arizona Water Association Biosolids Sub-Conference",cfaUrl:"",name:"AZ Water Biosolids Sub-Conference",region:"US",confDate:"2026-05-19",deadline:"N/A",deadlineTime:"",city:"Payson",state:"AZ",country:"US",url:"",notes:"Riley Murnane and Sarah Ben-Yoseph attended — no abstract or presentation. Attendance/networking only.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Riley, Sarah",presDetails:"",cats:["muni", "dew"],pursueNextYear:"yes"},
+  {id:9,fullName:"WateReuse Annual Symposium",cfaUrl:"https://watereuse.org/news-events/conferences/",name:"WateReuse",region:"US",confDate:"2026-03-11",deadline:"",deadlineTime:"",city:"Los Angeles",state:"CA",country:"US",url:"https://watereuse.org/news-events/conferences/",notes:"Abstract rejected. Project: Yucaipa WRWRF. Topic: Nanobubble Pretreatment — BNR stabilization and AWT/reuse reliability. Submitted Jul 2025.",status:"rejected",presenter:"Andrea",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:10,fullName:"South Carolina Environmental Conference",cfaUrl:"https://www.scwaters.org/mpage/scec",name:"South Carolina Environmental Conference (SCEC)",region:"US",confDate:"2026-03-18",deadline:"",deadlineTime:"",city:"Myrtle Beach",state:"SC",country:"US",url:"https://www.scwaters.org/mpage/scec_exhibitors",notes:" Baji: Let Gary do his thing here.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:11,fullName:"American Water Works Association New Jersey Section Annual Conference",cfaUrl:"https://www.njawwa.org",name:"AWWA New Jersey",noCfp:true,region:"US",confDate:"2026-04-28",deadline:"2026-03-17",deadlineTime:"",city:"Atlantic City",state:"NJ",country:"US",url:"https://www.njawwa.org",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"maybe"},
+  {id:12,fullName:"Missouri Joint Annual Meeting",cfaUrl:"https://mwea.org/2026_MO_JAM",name:"MO-JAM",region:"US",confDate:"2026-03-25",deadline:"2026-03-22",deadlineTime:"",city:"Osage Beach",state:"MO",country:"US",url:"https://mwea.org/2026_MO_JAM",notes:"Missed abstract deadline",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"]},
+  {id:13,fullName:"Pennsylvania Rural Water Association Annual Conference",cfaUrl:"https://www.prwa.com/call-for-courses",name:"PA Rural Water",region:"US",confDate:"2026-11-04",deadline:"2026-08-31",deadlineTime:"",city:"State College",state:"PA",country:"US",url:"https://www.prwa.com/call-for-courses",notes:"Accepted but declined — format is a 3-hour course/workshop, not a standard presentation. Could not prepare course content in time. Jenn confirmed May 2026.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:14,fullName:"Indiana Section AWWA Water Institute & Equipment Expo",cfaUrl:"https://www.inawwa.org",name:"Water Institute & Equipment Expo",region:"US",confDate:"2026-12-03",deadline:"",deadlineTime:"",city:"French Lick",state:"IN",country:"US",url:"https://www.inawwa.org",notes:"",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:15,fullName:"Food and Beverage Environmental Conference",cfaUrl:"https://fbeconf.com/call-for-posters/",name:"FBEC",region:"US",confDate:"2026-04-10",deadline:"2026-05-01",deadlineTime:"",city:"Gulf Shores",state:"AL",country:"US",url:"https://fbeconf.com",notes:"Poster abstract rejected 2026. Patrick & Cody attended. Meister Cheese topic. Abstract deadline was May 1 2026. FBEC 2027: Apr 5-8, Oceanside CA — CFA opens fall 2026 (scwaters.org/mpage/scec_presenters for format ref). Submit under Innovative Solutions Poster — new case study required.",status:"rejected",techPaper:false,paperDeadline:"",paperDeadlineTime:"",posterRequired:true,posterDeadline:"",posterDeadlineTime:"",presenter:"Patrick, Cody (attended)",presDetails:"",cats:["ind", "pre"],pursueNextYear:"yes"},
+  {id:16,fullName:"Texas Rural Water Association — Training & Technical Conference",cfaUrl:"https://www.trwa.org/page/proposals",name:"TRWA Training & Technical",region:"US",confDate:"2026-08-19",deadline:"",deadlineTime:"",city:"Arlington",state:"TX",country:"US",url:"https://www.trwa.org/page/proposals",notes:"Targeting Training & Technical Conference only (Galveston TX, Jul 15-16 2026). Other TRWA conferences are drinking water / rural ops — not a fit. NOW ACCEPTING 2027 proposals — rolling submissions via trwa.org/page/proposals. Contact: meetings@trwa.org | (512) 472-8591. Baji: John's call.",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"maybe"},
+  {id:17,fullName:"Upper Peninsula Water Conference",cfaUrl:"https://www.mi-water.org/up-water-conference",name:"U.P. Water Conference",region:"US",confDate:"2026-09-23",deadline:"2026-04-07",deadlineTime:"",city:"Harris",state:"MI",country:"US",url:"https://www.mi-water.org/up-water-conference",notes:"No abstract found in style guide or abstract folder. Monitoring.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:18,fullName:"California Water Environment Association Annual Conference & Expo",cfaUrl:"https://www.cwea.org/events/",name:"CWEA",region:"US",confDate:"2026-04-10",deadline:"2025-08-22",deadlineTime:"11:59 PM PT",city:"Sacramento",state:"CA",country:"US",url:"https://www.cwea.org/events/",notes:"Accepted per tracker notes — Yucaipa WRWRF case study. Presenters: John Crisman & Andrea White. Sep 23, Harris MI. NOTE: Verify with team — no style guide entry found for this abstract.",status:"ready",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"John Crisman, Andrea White",presDetails:"Nanobubble Pretreatment as a Biocatalytic Process Intensification Strategy: Stabilizing BNR at Yucaipa Valley Water District",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:19,fullName:"Alabama/Mississippi Water Conference",cfaUrl:"https://almswater.com",name:"AL/MS Water Conference",region:"US",confDate:"2026-04-15",deadline:"2026-04-12",deadlineTime:"",city:"Mobile",state:"AL",country:"US",url:"https://almswater.com",notes:"Missed abstract call",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"]},
+  {id:20,fullName:"Water Environment Association of Utah Annual Conference",cfaUrl:"https://weau.org/Annual_Conference",name:"WEAU Annual Conference",region:"US",confDate:"2026-03-05",deadline:"2026-01-06",deadlineTime:"",city:"St. George",state:"UT",country:"US",url:"https://weau.org/Annual_Conference",notes:" 2027: Apr 20-23, Dixie Convention Center, St. George UT. Registration opens Jan 2027. No CFA posted yet — check weau.org/Annual_Conference.",status:"rejected",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Riley",presDetails:"",cats:["muni", "pre"],pursueNextYear:"maybe"},
+  {id:21,fullName:"Florida Water Resources Conference (Florida Water Environment Association)",cfaUrl:"https://www.fwrc.org/attend/",name:"FWRC (FWEA)",region:"US",confDate:"2026-05-14",deadline:"",deadlineTime:"",city:"Orlando",state:"FL",country:"US",url:"https://www.fwrc.org/attend/",notes:"Conflicting dates with Texas Water",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:22,fullName:"Texas Water Annual Conference",cfaUrl:"https://www.txwater.org/",name:"Texas Water",region:"US",confDate:"2026-05-15",deadline:"",deadlineTime:"",city:"San Antonio",state:"TX",country:"US",url:"https://www.txwater.org/",notes:"Conflicting dates with FWRC",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:23,fullName:"Arizona Water Association Annual Conference",cfaUrl:"https://www.azwater.org/group/annualconference",name:"AZ Water Conference",region:"US",confDate:"2026-06-10",deadline:"2026-04-28",deadlineTime:"",city:"Phoenix",state:"AZ",country:"US",url:"https://www.azwater.org/group/annualconference",notes:"Abstract rejected. Project: Yucaipa WRWRF. Topic: Nanobubble Technology Restores Stability & Improves BNR Performance Through Process Intensification. Submitted Oct 2025.",status:"rejected",presenter:"Riley",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Riley",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:24,fullName:"British Columbia Water & Waste Association Annual Conference",cfaUrl:"https://bcwwaconference.org/site/program/education?nav=sidebar",name:"BCWWA Annual Conference",region:"US",confDate:"2026-05-01",deadline:"2026-01-13",deadlineTime:"",city:"Penticton",state:"BC",country:"Canada",url:"https://bcwwaconference.org/site/program/education?nav=sidebar",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:25,fullName:"Maryland Rural Water Association Conference",cfaUrl:"https://www.md-rwa.org/annual-conference/",name:"MWRA Conference",region:"US",confDate:"2026-08-19",deadline:"2026-05-04",deadlineTime:"",city:"Ocean City",state:"MD",country:"US",url:"https://www.md-rwa.org/annual-conference/",notes:"Class abstracts only?",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:26,fullName:"Pennsylvania American Water Works Association 78th Annual Technical Conference & Expo",cfaUrl:"https://www.paawwa.org/conference/",name:"PA-AWWA Annual Conference",region:"US",confDate:"2026-05-06",deadline:"2026-05-04",deadlineTime:"",city:"State College",state:"PA",country:"US",url:"https://www.paawwa.org/conference/",notes:"Missed abstract call",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:""},
+  {id:27,fullName:"Oklahoma Water Environment Association Annual Conference",cfaUrl:"https://www.owea.org/conference/",name:"OWEA",region:"US",confDate:"2026-05-06",deadline:"",deadlineTime:"",city:"Tulsa",state:"OK",country:"US",url:"https://www.owea.org/conference/",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:28,fullName:"Pacific Northwest Section American Water Works Association Conference",cfaUrl:"https://www.pnws-awwa.org/conference/",name:"PNWS AWWA",noCfp:true,region:"US",confDate:"2026-05-08",deadline:"NA",deadlineTime:"",city:"Tacoma",state:"WA",country:"US",url:"https://www.pnws-awwa.org/conference/",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:29,fullName:"WEF Residuals & Biosolids Technical Conference (RBTT / RBITC)",cfaUrl:"https://www.wef.org/residualsbiosolids/",name:"WEF RBTT (RBITC)",region:"US",confDate:"2026-05-14",deadline:"2026-01-31",deadlineTime:"",city:"Kansas City",state:"MO",country:"US",url:"https://www.wef.org/residualsbiosolids/",notes:"WEF RBTT/RBTTC 2026. May 11-14, Kansas City. CWS polymer dewatering (won, Sarah Ben-Yoseph presenting). Yucaipa abstract (lost — rejected). See also WEF RBITC — CWS (id:55) and Greer (id:56) for tech paper entries.",status:"complete",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Sarah Ben-Yoseph",presDetails:"Reducing Polymer Use and Sludge Handling Costs with Nanobubble-Conditioned Makedown Water",cats:["muni", "dew"],pursueNextYear:"yes"},
+
+  {id:30,fullName:"Biogas Americas Conference",cfaUrl:"https://biogasamericas.com/",name:"Biogas Americas",region:"US",confDate:"2026-05-21",deadline:"",deadlineTime:"",city:"Detroit",state:"MI",country:"US",url:"https://biogasamericas.com/",notes:"Baji/Brad attending Baji: Depends on where we are with AD. Pat attended this week.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Baji, Brad",presDetails:"",cats:["ind", "dew"],pursueNextYear:"maybe"},
+  {id:31,fullName:"Central States Water Environment Association Annual Conference",cfaUrl:"https://members.cswea.org/members/proposals/propselect.php?orgcode=CNTW&prid=1987873",name:"CSWEA",region:"US",confDate:"2026-05-20",deadline:"2025-11-30",deadlineTime:"",city:"St. Paul",state:"MN",country:"US",url:"https://members.cswea.org/members/proposals/propselect.php?orgcode=CNTW&prid=1987873",notes:"Presented May 20, 2026. John Crisman flight cancelled — Cedella Beazley (Xylem) presented on his behalf. Topic: Breaking the Upset Cycle and Intensifying Nutrient Removal in Water-Stressed Regions.",status:"complete",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Cedella Beazley (Xylem) — presenting on behalf of John Crisman",presDetails:"Nanobubble Pretreatment: Breaking the Upset Cycle and Intensifying Nutrient Removal in Water-Stressed Regions",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:32,fullName:"WateReuse Industrial Water Solutions Conference",cfaUrl:"https://www.iwsconference.org",name:"Industrial Water Solutions",region:"US",confDate:"2026-06-10",deadline:"2026-01-29",deadlineTime:"",city:"Chicago",state:"IL",country:"US",url:"https://www.iwsconference.org",notes:"ACCEPTED. Presenter: John Crisman. Jun 10 2026. IWS 2026 — sequel to IWS 2025 Meister original results (John Crisman, §47 style guide).",status:"accepted",techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"John Crisman",presDetails:"Panel — Food Session (Alfa Laval moderator, Nestlé Purina panelist): Meister Cheese industrial dairy NB pretreatment",cats:["ind", "pre"],pursueNextYear:"yes"},
+  {id:33,fullName:"Michigan Water Environment Association Annual Conference",cfaUrl:"https://www.viethconsulting.com/members/proposals/propselect.php?orgcode=MWEA&prid=1897445",name:"MWEA Conference",region:"US",confDate:"2026-07-22",deadline:"",deadlineTime:"",city:"Boyne Falls",state:"MI",country:"US",url:"https://www.viethconsulting.com/members/proposals/propselect.php?orgcode=MWEA&prid=1897445",notes:"Missed 2026 deadline",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:""},
+  {id:34,fullName:"Pennsylvania Water Environment Association Technical Conference (PennTec)",cfaUrl:"https://www.pwea.org/annual_technical_conference.php",name:"PennTec",region:"US",confDate:"2026-06-18",deadline:"2025-10-31",deadlineTime:"",city:"Hershey",state:"PA",country:"US",url:"https://www.pwea.org/annual_technical_conference.php",notes:"97th Annual / 100th Anniversary PWEA. Jun 15 banquet, Jun 16-18 conference. Hershey Lodge, Hershey PA.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre", "dew"],pursueNextYear:"maybe"},
+  {id:35,fullName:"American Water Works Association Annual Conference & Exposition 2026",cfaUrl:"https://ace.awwa.org/exhibitors-sponsors/",name:"ACE 2026",region:"US",confDate:"2026-06-24",deadline:"2026-06-21",deadlineTime:"",city:"Washington",state:"DC",country:"US",url:"https://ace.awwa.org/exhibitors-sponsors/",notes:"Missed abstract. Attend with Xylem?",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:""},
+  {id:36,fullName:"Louisiana Rural Water Association Annual Conference",cfaUrl:"https://lrwa.org/annual-conference/",name:"LRWA",region:"US",confDate:"2026-06-10",deadline:"2026-03-13",deadlineTime:"",city:"Lake Charles",state:"LA",country:"US",url:"https://lrwa.org/annual-conference/",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:37,fullName:"Tri-State Seminar (California, Nevada, Arizona)",cfaUrl:"https://tristateseminar.com",name:"Tri-State Seminar (CA, NV, AZ)",region:"US",confDate:"2026-08-05",deadline:"2026-01-31",deadlineTime:"",city:"Las Vegas",state:"NV",country:"US",url:"https://tristateseminar.com",notes:"2 abstracts submitted. CWS — ACCEPTED. Yucaipa — REJECTED. Riley Murnane presenting CWS. Aug 5 2026, Las Vegas NV.",status:"accepted",techPaper:false,paperDeadline:"2026-07-06",paperDeadlineTime:"",presenter:"Riley Murnane (CWS)",presDetails:"",presDeadline:"2026-08-05",presDeadlineTime:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:38,fullName:"One Water Ohio Joint Conference 2026",cfaUrl:"",name:"2026 One Water Joint Conference",region:"US",confDate:"2026-08-20",deadline:"",deadlineTime:"",city:"Cincinnati",state:"OH",country:"US",url:"https://site.pheedloop.com/event/onewaterohio/home",notes:"Aug 17-20 2026, Cincinnati OH. No open CFA found — abstracts page not available. Monitor onewaterohio.org for CFA opening. Baji: Don't know much about it.",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"maybe"},
+  {id:39,fullName:"Kentucky Rural Water Association Annual Conference",cfaUrl:"https://ace.krwa.org",name:"KY Annual Conference",region:"US",confDate:"2026-10-07",deadline:"",deadlineTime:"",city:"Lexington",state:"KY",country:"US",url:"https://ace.krwa.org",notes:"No abstract call found yet",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:40,fullName:"Indiana Water Environment Association Annual Conference",cfaUrl:"https://indianawea.org/annual-conference/",name:"IWEA Annual Conference",region:"US",confDate:"2026-10-14",deadline:"",deadlineTime:"",city:"Indianapolis",state:"IN",country:"US",url:"https://indianawea.org/annual-conference/",notes:"",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:41,fullName:"Illinois Section AWWA Water Works 360",cfaUrl:"https://www.isawwa.org/page/waterworks360",name:"Water Works 360",noCfp:true,region:"US",confDate:"2026-04-29",deadline:"NA",deadlineTime:"",city:"Glen Ellyn",state:"IL",country:"US",url:"https://www.isawwa.org/page/waterworks360",notes:"Baji, Cody Ray, John Crisman attending",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Baji, Cody, John",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:42,fullName:"Rocky Mountain Water Conference",cfaUrl:"https://www.rockymountainwaterconference.org",name:"Rocky Mnt. Water Conference",region:"US",confDate:"2026-03-25",deadline:"2026-01-21",deadlineTime:"",city:"Keystone",state:"CO",country:"US",url:"https://www.rockymountainwaterconference.org",notes:"",status:"rejected",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Riley",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:43,fullName:"Chesapeake Tri-Association Conference (AWWA, WEA, WEF)",cfaUrl:"https://www.chesapeaketricon.org",name:"Chesapeake Tri Association",region:"US",confDate:"2026-09-04",deadline:"2026-01-06",deadlineTime:"11:59 PM ET",city:"Ocean City",state:"MD",country:"US",url:"https://www.chesapeaketricon.org",notes:"",status:"accepted",techPaper:false,paperDeadline:"2026-08-21",paperDeadlineTime:"",presenter:"John Crisman, Cody",presDetails:"",presDeadline:"2026-09-04",presDeadlineTime:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:44,fullName:"Pacific Northwest Clean Water Association Annual Conference",cfaUrl:"",name:"PNCWA",region:"US",confDate:"2026-09-16",deadline:"2026-02-17",deadlineTime:"",city:"Spokane",state:"WA",country:"US",url:"https://www.pncwa.org/annual-conference/",notes:"ACCEPTED. Abstract ID 242. Title: Nanobubble Pretreatment as an Intensification Strategy at the Budd Inlet Treatment Plant. Presentation: Tue Sep 15, 1:35–2:05 PM (30 min). Spokane Convention Center, Sep 13-16 2026. Davenport Hotel. Speaker commitment form SUBMITTED by Riley May 26. Presenters: Riley Murnane (Moleaer), Paul Jue (LOTT), Stephen Taylor (LOTT).",status:"accepted",techPaper:false,paperDeadline:"2026-09-02",paperDeadlineTime:"",paperDeadlineLabel:"PowerPoint Presentation",presenter:"Riley Murnane, Paul Jue (LOTT), Stephen Taylor (LOTT)",presDetails:"Nanobubble Pretreatment as an Intensification Strategy at the Budd Inlet Treatment Plant — Tue Sep 15, 1:35–2:05 PM",presDeadline:"2026-09-16",presDeadlineTime:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:45,fullName:"Intermountain Section AWWA Conference",cfaUrl:"https://imsawwa.starchapter.com/meetinginfo.php?id=1",name:"IMS-AWWA Conference",noCfp:true,region:"US",confDate:"2026-09-14",deadline:"NA",deadlineTime:"",city:"Logan",state:"UT",country:"US",url:"https://imsawwa.starchapter.com/meetinginfo.php?id=1",notes:"Riverwoods Conference Center, 615 Riverwoods Pkwy, Logan UT. Registration opens June 1 (exhibitors) / June 15 (attendees).",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:46,fullName:"Working Together for Water — Western Canada Water & Wastewater Association",cfaUrl:"https://www.wcwwa.ca/page/callforpresentations",name:"Working Together for Water (W. Canada)",region:"US",confDate:"2026-04-22",deadline:"2026-02-23",deadlineTime:"",city:"Regina",state:"SK",country:"Canada",url:"https://www.wcwwa.ca/page/callforpresentations",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:47,fullName:"Water Environment Federation Technical Exhibition & Conference 2026 (99th Annual)",cfaUrl:"https://www.weftec.org/about/about-weftec/",name:"WEFTEC 2026",region:"US",confDate:"2026-09-30",deadline:"2026-01-14",deadlineTime:"9:00 AM ET",city:"New Orleans",state:"LA",country:"US",url:"https://www.weftec.org/about/about-weftec/",notes:"2 abstracts ACCEPTED (of 4 submitted). 1. Cheese Wastewater: Nanobubbles Enhance Digestion, Nutrient Removal, and Energy Recovery (Riley Murnane, Meister case study). 2. Nanobubble Pretreatment Stabilizes BNR and Reduces Energy Intensity (Andrea White, BNR/Yucaipa). Speaker portal confirmations COMPLETE (Riley & Andrea confirmed May 26). Full paper due Jul 8 9AM EST. Conference Sep 28-30 2026, New Orleans. Speaker portal: ww5.aievolution.com/wef/. 2 abstracts still pending (B&V LOTT, Greer).",status:"accepted",techPaper:true,paperDeadline:"2026-07-08",paperDeadlineTime:"9:00 AM EST",paperDeadlineLabel:"Full Technical Paper",presDeadline:"2026-09-16",presDeadlineTime:"",presenter:"Riley Murnane (Meister), Andrea White (BNR)",presDetails:"",cats:["muni", "ind", "pre", "dew"],pursueNextYear:"yes"},
+  {id:48,fullName:"Atlantic Canada Water & Wastewater Association Annual Conference",cfaUrl:"https://www.acwwa.ca/conferences/annualconference.html",name:"Atlantic Canada Conference",region:"US",confDate:"2026-05-27",deadline:"2026-03-01",deadlineTime:"",city:"Moncton",state:"NB",country:"Canada",url:"https://www.acwwa.ca/conferences/annualconference.html",notes:"",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:49,fullName:"Southwestern Section AWWA Annual Conference",cfaUrl:"https://swawwa.org/annual-conference/",name:"SWAWWA",region:"US",confDate:"2026-10-27",deadline:"2026-11-01",deadlineTime:"",city:"Bossier City",state:"LA",country:"US",url:"https://swawwa.org/annual-conference/",notes:"Oct 25-27 2026, Live! Casino and Hotel Louisiana, Bossier City LA. 2027: Oct 12-14, Tulsa OK. Primarily a drinking water conference — Moleaer does not currently have drinking water applications. Not pursuing.",status:"not-pursuing",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:50,fullName:"Wisconsin Wastewater Operators Association Annual Conference",cfaUrl:"https://www.wwoa.org",name:"Wisconsin Wastewater Operators Conf.",region:"US",confDate:"2026-10-16",deadline:"2026-02-06",deadlineTime:"",city:"Green Bay",state:"WI",country:"US",url:"https://www.wwoa.org",notes:"Peterson Rep attending",status:"submitted",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"John Crisman",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:51,fullName:"New England Section AWWA Annual Conference",cfaUrl:"https://newwa.starchapter.com/meetinginfo.php?id=33",name:"New England Section AWWA",noCfp:true,region:"US",confDate:"2026-09-23",deadline:"NA",deadlineTime:"",city:"Boston",state:"MA",country:"US",url:"https://newwa.starchapter.com/meetinginfo.php?id=33",notes:"No abstract found in style guide or abstract folder. Monitoring.",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:53,fullName:"European Waste Water Management Conference",cfaUrl:"https://ewwmconference.com",name:"European Waste Water Management Conference (EWWM)",region:"EUR",confDate:"2026-06-17",deadline:"2026-01-30",deadlineTime:"",city:"Telford",state:"",country:"England",url:"https://ewwmconference.com",notes:"ACCEPTED. Presenter: Cesar Herrera (Xylem). Jun 17 2026, Telford UK. EWWM Won folder confirmed. 5-min showcase presentation.",status:"complete",techPaper:false,paperDeadline:"",paperDeadlineTime:"TBD",paperDeadlineLabel:"",presenter:"Cesar Herrera",presDetails:"Nanobubble Technology for Process Intensification: Enhancing Nutrient Removal and Operational Resilience in Wastewater Treatment",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:55,fullName:"WEF Residuals & Biosolids Technical Conference — CWS (RBTT / RBITC)",cfaUrl:"https://www.wef.org/residualsbiosolids/",name:"WEF RBTT — CWS",region:"US",confDate:"2026-05-14",deadline:"2026-05-15",deadlineTime:"",city:"Kansas City",state:"MO",country:"US",url:"https://www.wef.org/residualsbiosolids/",notes:"Complete. Abstract accepted, presented, and tech paper submitted.",status:"complete",techPaper:true,paperDeadline:"",paperDeadlineTime:"",presenter:"Andrea",presDetails:"Presented May 2026",cats:["muni", "dew"]},
+  {id:56,fullName:"WEF Residuals & Biosolids Technical Conference — Greer (RBTT / RBITC)",cfaUrl:"https://www.wef.org/residualsbiosolids/",name:"WEF RBTT — Greer",region:"US",confDate:"2026-05-14",deadline:"2026-05-15",deadlineTime:"",city:"Kansas City",state:"MO",country:"US",url:"https://www.wef.org/residualsbiosolids/",notes:"Complete. Abstract accepted, presented, and tech paper submitted.",status:"complete",techPaper:true,paperDeadline:"",paperDeadlineTime:"",presenter:"Andrea",presDetails:"Presented May 2026",cats:["muni", "dew"]},
+  {id:57,fullName:"WEFTEC Technology Spotlight — Yucaipa Valley Water District",cfaUrl:"https://www.weftec.org/exhibit/about-the-exhibition/now/weftec-now/exhibitors-submit-your-technology-spotlight-abstracts/",name:"WEFTEC Tech Spotlight — Yucaipa",region:"US",confDate:"2026-10-03",deadline:"2026-05-17",deadlineTime:"",city:"New Orleans",state:"LA",country:"US",url:"https://www.weftec.org/exhibit/about-the-exhibition/now/weftec-now/exhibitors-submit-your-technology-spotlight-abstracts/",notes:"Submitted 5/15/2026. Title: Eliminating Cold-Season Ammonia Upsets through Nanobubble Pretreatment for BNR Process Intensification. 630 m3/h (4 MGD) Yucaipa WRWRF. Awaiting acceptance decision.",status:"submitted",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Andrea White",presDetails:"Eliminating Cold-Season Ammonia Upsets through Nanobubble Pretreatment for BNR Process Intensification",cats:["muni", "pre"]},
+  {id:59,fullName:"WEFTEC Technology Spotlight — CWS",cfaUrl:"https://www.weftec.org/exhibit/about-the-exhibition/now/weftec-now/exhibitors-submit-your-technology-spotlight-abstracts/",name:"WEFTEC Tech Spotlight — CWS",region:"US",confDate:"2026-10-03",deadline:"2026-05-17",deadlineTime:"",city:"New Orleans",state:"LA",country:"US",url:"https://www.weftec.org/exhibit/about-the-exhibition/now/weftec-now/exhibitors-submit-your-technology-spotlight-abstracts/",notes:"Submitted 5/15/2026. Title: Reducing Dewatering Costs by Optimizing Polymer Utilization with Nanobubble-Conditioned Make-Down Water. CWS Rock Creek WRRF — 17% polymer reduction. Awaiting acceptance decision.",status:"submitted",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Andrea White",presDetails:"Reducing Dewatering Costs by Optimizing Polymer Utilization with Nanobubble-Conditioned Make-Down Water",cats:["muni", "dew"]},
+  {id:58,fullName:"Industrial Water Conference",cfaUrl:"https://eswp.com/water/cfp/",name:"IWC (Industrial Water Conference)",region:"US",confDate:"2026-11-12",deadline:"",deadlineTime:"",city:"Lake Buena Vista",state:"FL",country:"US",url:"https://eswp.com/water/",notes:"ACCEPTED. Session: W1 Food & Bev 2. Session Chair: Craig Mills (cmills@westechwater.com). Executive Council sponsor: Jeff Easton. Discussion Leader: Samantha Fowler. Meister Cheese dairy wastewater — AD + MLE, 2022-2024 data, 30% production increase, 35% more methane, 99.5% ammonia removal, 88% COD reduction. Paper due Jul 1 2026. Presentation: Nov 12, 2026, Hilton at Walt Disney World Resort, Lake Buena Vista FL. 87th Annual IWC. Commercialism policy strictly enforced. Speaker ref: eswp.com/water/iwcspeakers/. Virtual Meet & Greet TBD.",status:"accepted",techPaper:true,paperDeadline:"2026-07-01",paperDeadlineTime:"9:00 AM ET",paperDeadlineLabel:"First Draft Paper",presDeadline:"2026-10-28",presDeadlineTime:"",presenter:"John Crisman",presDetails:"From Innovation to Optimization: Long-Term Nanobubble Performance for Food & Beverage Wastewater Process Intensification — Wed Nov 11, 2026",cats:["ind", "pre"],pursueNextYear:"yes"},
+  {id:114,fullName:"Pennsylvania Rural Water Association Annual Conference",cfaUrl:"https://www.prwa.com/call-for-courses",name:"PA Rural Water (PRWA)",region:"US",confDate:"2026-03-26",deadline:"",deadlineTime:"",city:"State College",state:"PA",country:"US",url:"https://www.prwa.com",notes:"ACCEPTED. Meister Cheese dairy wastewater case study. 2+ years operational data (2022-2024). AD recirculation + upstream lift station. 30% production increase, 35% more methane, 99.5% ammonia removal, 88% COD reduction. Paper draft due Jul 1, 2026. Presentation: Nov 12, 2026. Hilton at Walt Disney World Resort, Lake Buena Vista FL. 87th Annual IWC.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"PowerPoint Presentation",presenter:"",presDetails:"Addressing Chronic Process Upsets in Wastewater Treatment: How Nanobubble Technology Transforms Operational Stability and Performance",cats:["muni", "pre"]},
+  {id:115,fullName:"Pollutec — International Exhibition for Environment, Water and Energy Solutions",cfaUrl:"https://www.pollutec.com/en-gb.html",name:"Pollutec",region:"EUR",confDate:"2026-12-03",deadline:"",deadlineTime:"",city:"Lyon",state:"",country:"France",url:"https://www.pollutec.com/en-gb.html",notes:"Biennial trade show / conference, Lyon France. Typically Nov-Dec even years. Geo-blocked from Spain — verify 2026 dates. Won 2023. Baji: Definitely skip.",status:"monitoring",noCfp:false,techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"",presDetails:"",cats:["muni", "ind"],pursueNextYear:"no"},
+  {id:116,fullName:"Water Environment Association of Ontario Annual Technical Symposium and Exhibition",cfaUrl:"https://weao.org/",name:"WEAO Annual Conference",region:"US",confDate:"2027-04-01",deadline:"",deadlineTime:"",city:"Ontario",state:"",country:"Canada",url:"https://weao.org/",notes:"Water Environment Association of Ontario. Annual spring conference, Ontario Canada. Geo-blocked from Spain — verify 2026/2027 dates and CFA. Won 2023. Baji: If we do one thing in Canada.",status:"monitoring",noCfp:false,techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"maybe"},
+  {id:117,fullName:"IWA Leading Edge Conference on Water and Wastewater Technologies",cfaUrl:"https://lwwtp2027.org/",name:"IWA LWWTP",region:"EUR",confDate:"2027-06-01",deadline:"2026-09-30",deadlineTime:"",city:"TBD",state:"",country:"",url:"https://lwwtp2027.org/",notes:"IWA LWWTP 2027 — CFA IS OPEN via ConfTool. Extended abstract deadline: Sep 30 2026. Author notification Feb 28 2027. Vienna, Austria (TU Wien). Note: this is the IWA Large WWTP specialist conference, not the IWA Leading Edge Technology conference. Strong fit for Yucaipa, LOTT, Greer data. Won 2024.",status:"pass",noCfp:false,techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:118,fullName:"WEF Collection Systems Conference",cfaUrl:"https://www.wef.org/events--education/conferences/collectionsstormwater2026/",name:"WEF Collection Systems",region:"US",confDate:"2026-07-11",deadline:"",deadlineTime:"",city:"Portland",state:"OR",country:"US",url:"https://www.wef.org/events--education/conferences/collectionsstormwater2026/",notes:"WEF Collection Systems & Stormwater 2026. Jul 8-11, Oregon Convention Center, Portland OR. Headquarter hotel: Hyatt Regency Portland. Registration open — early bird ends May 29. Technical program in development. Accepted 2024 then withdrew. CFA status TBD.",status:"monitoring",noCfp:false,techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:119,fullName:"IWA Nutrient Removal and Recovery Conference",cfaUrl:"https://www.iwa-network.org/events/iwa-nutrient-removal-and-recovery-conference-2026",name:"IWA Nutrient Removal & Recovery",region:"EUR",confDate:"2027-01-01",deadline:"",deadlineTime:"",city:"TBD",state:"",country:"",url:"https://www.iwa-network.org/events/iwa-nutrient-removal-and-recovery-conference-2026",notes:"IWA Nutrient Removal & Recovery 2026 — PASSED. Geo-blocked from Spain. Next occurrence TBD — check iwa-network.org. Strong fit for Yucaipa BNR results.",status:"pass",noCfp:false,techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"",presDetails:"",cats:["muni", "pre"]},
+  {id:60,fullName:"IFAT Munich — World's Leading Trade Fair for Environmental Technologies",cfaUrl:"https://www.ifat.de/en/",name:"IFAT Munich 2026",region:"EUR",confDate:"2026-05-11",deadline:"NA",deadlineTime:"",city:"Munich",state:"",country:"Germany",url:"https://www.ifat.de/en/",notes:"Biennial trade fair — 60th anniversary year. May 7-11, 2026, Messe Munich. Moleaer exhibited/attended. No CFA — exhibitor format. Next edition: IFAT 2028. Attendees: Cesar Herrera, Baji Gobburi. Baji: If we get a win. Booth-heavy event — worth considering given scale.",status:"pass",noCfp:true,techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Cesar Herrera, Baji Gobburi",presDetails:"Attended May 2026",cats:["muni", "ind"],pursueNextYear:"maybe"},
+  {id:120,fullName:"NC One Water Annual Conference",cfaUrl:"https://app.oxfordabstracts.com/stages/81869/submitter",name:"NC One Water",region:"US",confDate:"2026-11-02",deadline:"2026-06-26",deadlineTime:"11:59 PM ET",city:"Raleigh",state:"NC",country:"US",url:"https://nconewater.org/page/AnnualConference",notes:"SUBMITTED by Gary (Greer / Xylem contact) — Greer polymer dewatering case study. Submitted May 26 2026 per Cody Ray. Andrea offered draft abstract support if needed. CFA deadline Jun 26 2026 via Oxford Abstracts. Theme: Every Drop Counts. Conference Nov 2-4 2026, Raleigh NC. ~1,700 attendees. Notification: mid-August 2026. Contact: pwilleboordse@nconewater.org.",status:"submitted",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Gary (Xylem / Greer contact)",presDetails:"",cats:["muni","dew"],pursueNextYear:"yes"},
+  {id:121,fullName:"IWA World Conference on Anaerobic Digestion AD19",cfaUrl:"https://iwa-ad19.com/",name:"IWA AD19",region:"EUR",confDate:"2026-06-13",deadline:"2025-12-01",deadlineTime:"",city:"Valencia",state:"",country:"Spain",url:"https://iwa-ad19.com/",notes:"19th IWA World Conference on Anaerobic Digestion — Fueling Sustainability. Jun 9-13 2026, Valencia Conference Center, Spain. Abstract deadline was Dec 1 2025 — passed. Not attending this cycle per team. Held every ~2 years; AD20 expected ~2028. Strong fit for Moleaer anaerobic digestion data (Meister, Greer, Yucaipa). Watch for AD20 CFA.",status:"pass",noCfp:false,techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"",presDetails:"",cats:["muni","ind","pre"],pursueNextYear:"maybe"},
+  {id:122,fullName:"International Conference on Nanobubbles, Nanodroplets, and Their Applications 2026",cfaUrl:"https://nanobubble2026.com/abstract-submission/",name:"Nanobubble 2026",region:"US",confDate:"2026-08-21",deadline:"2026-03-15",deadlineTime:"",city:"Newark",state:"NJ",country:"US",url:"https://nanobubble2026.com/",notes:"2026 International Conference on Nanobubbles, Nanodroplets, and Their Applications. Aug 19-21 2026, NJIT, Newark NJ. Abstract deadline Mar 15 2026 — PASSED (missed this cycle). IWA-supported. Moleaer R&D sent scientists to Kyoto 2024 edition. More of a research/academic conference than commercial — WP team unlikely to attend/present but good to monitor. Watch for 2028 edition CFA. Previous editions: Kyoto 2024, Magdeburg 2022. Cesar flagged Jun 2026.",status:"pass",noCfp:false,techPaper:false,paperDeadline:"",paperDeadlineTime:"",paperDeadlineLabel:"",presenter:"",presDetails:"",cats:["muni","ind","pre","dew"],pursueNextYear:"yes"},
+];
+
+const C2027=[
+  {id:101,fullName:"New England Water Environment Association Annual Conference 2027",cfaUrl:"https://www.newea.org/annual-conference/",name:"NEWEA 2027",region:"US",deadline:"2026-06-12",deadlineTime:"11:59 PM ET",city:"Boston",state:"MA",country:"US",url:"https://www.newea.org/annual-conference/",confDates:"Jan 24–27, 2027",venue:"Boston Marriott Copley Place, Boston MA",notes:"CFA deadline Jun 12 2026. Co-submitting with Woodard & Curran (W&C) on Plymouth, MA collection system case study. Sue (W&C) submitting; Maureen on NEWEA board — strong acceptance likelihood. Plymouth prelim: ~40% YOY bioxide reduction, ~70% H2S reduction in collection system. Cody Ray lead. Cody OOO Jun 16-29.",status:"submitted",techPaper:false,paperDeadline:"2027-01-08",paperDeadlineTime:"11:59 PM ET",presenter:"Sue (Woodard & Curran), Cody Ray (Moleaer)",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:102,fullName:"WateReuse Annual Symposium 2027",cfaUrl:"https://watereuse.org/news-events/conferences/",name:"WateReuse Symposium 2027",region:"US",deadline:"",deadlineTime:"",city:"Las Vegas",state:"NV",country:"US",url:"https://watereuse.org/news-events/conferences/",confDates:"Mar 1–4, 2027",venue:"Caesars Palace",notes:"42nd Annual Symposium. Abstract call TBD.",status:"pass",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"no"},
+  {id:103,fullName:"California Water Environment Association Annual Conference 2027",cfaUrl:"https://www.cwea.org/events/",name:"CWEA 2027",region:"US",deadline:"",deadlineTime:"",city:"Palm Springs",state:"CA",country:"US",url:"https://www.cwea.org/news/save-the-date-future-cwea-annual-conferences/",confDates:"Apr 5–8, 2027",venue:"Palm Springs, CA",notes:"Abstract call typically opens Aug/Sep 2026",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:104,fullName:"Water Environment Federation Residuals & Biosolids Conference 2027",cfaUrl:"https://www.wef.org/residualsbiosolids/",name:"WEF Residuals & Biosolids 2027",region:"US",deadline:"",deadlineTime:"",city:"TBD",state:"",country:"US",url:"https://www.wef.org/residualsbiosolids/",confDates:"May 2027 (TBD)",venue:"TBD",notes:"Location not yet announced. Historically May.",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "dew"],pursueNextYear:"yes"},
+  {id:105,fullName:"American Water Works Association Annual Conference & Exposition 2027",cfaUrl:"https://ace.awwa.org/",name:"ACE27 (AWWA)",region:"US",deadline:"",deadlineTime:"",city:"San Diego",state:"CA",country:"US",url:"https://ace.awwa.org/",confDates:"Jun 13–16, 2027",venue:"TBD — San Diego",notes:"Abstract call typically opens Dec/Jan prior",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "pre"],pursueNextYear:"yes"},
+  {id:106,fullName:"Water Environment Federation Technical Exhibition & Conference 2027 (100th Annual)",cfaUrl:"https://www.weftec.org/about/about-weftec/",name:"WEFTEC 2027",region:"US",deadline:"",deadlineTime:"",city:"Chicago",state:"IL",country:"US",url:"https://www.weftec.org/about/about-weftec/",confDates:"Sep 25–29, 2027",venue:"McCormick Place, Chicago IL",notes:"Abstract submission process opens June 2027",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni", "ind", "pre", "dew"],pursueNextYear:"yes"},
+  {id:107,fullName:"Food and Beverage Environmental Conference 2027",cfaUrl:"https://fbeconf.com/call-for-posters/",name:"FBEC 2027",region:"US",deadline:"",deadlineTime:"",city:"Oceanside",state:"CA",country:"US",url:"https://fbeconf.com",confDates:"Apr 5–8, 2027",venue:"The Seabird / Mission Pacific, Oceanside CA",notes:"CFA opens fall 2026. FBEC 2026 rejected — Meister already presented, need new topic. Baji suggests Lactalis for FBEC 2027. Cody: Lactalis NBG working correctly as of May 2026 (dataset available). Confirm Lactalis data readiness before submitting.",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["ind","pre"],pursueNextYear:"yes"},
+  {id:108,fullName:"Texas Water Annual Conference 2027",cfaUrl:"https://www.txwater.org/",name:"Texas Water 2027",region:"US",deadline:"",deadlineTime:"",city:"Houston",state:"TX",country:"US",url:"https://www.txwater.org/",confDates:"Mar 30–Apr 2, 2027",venue:"George R. Brown Convention Center, Houston TX",notes:"Texas Water 2027 confirmed dates. Largest regional water conference in the US. Exhibitor waitlist for 2026 — sold out. Check txwater.org for 2027 CFA and exhibitor openings.",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni","pre"],pursueNextYear:"yes"},
+  {id:109,fullName:"IWA Large Wastewater Treatment Plants Conference 2027",cfaUrl:"https://lwwtp2027.org/submission/",name:"IWA LWWTP 2027",region:"EUR",deadline:"2026-09-30",deadlineTime:"",city:"Vienna",state:"",country:"Austria",url:"https://lwwtp2027.org/",confDates:"TBD 2027",venue:"TU Wien, Vienna, Austria",notes:"CFA OPEN — extended abstract deadline Sep 30 2026 via ConfTool. Author notification Feb 28 2027. Conference on Design, Operation and Economics of Large Wastewater Treatment Plants. Strong fit for Yucaipa, LOTT, Greer case studies. Note: this is the IWA Large WWTP specialist conference (lwwtp2027.org), not the IWA Leading Edge Technology conference — different event.",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni","pre"],pursueNextYear:"yes"},
+  {id:110,fullName:"Pacific Northwest Clean Water Association Annual Conference 2027",cfaUrl:"https://www.pncwa.org/annual-conference/",name:"PNCWA 2027",region:"US",deadline:"",deadlineTime:"",city:"TBD",state:"",country:"US",url:"https://www.pncwa.org/annual-conference/",confDates:"TBD 2027",venue:"TBD",notes:"CFA window: December 2026–February 2027 (based on 2026 timeline). Watch pncwa.org for 2027 CFA opening Dec 2026.",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni","pre"],pursueNextYear:"yes"},
+  {id:111,fullName:"South Carolina Environmental Conference 2027",cfaUrl:"https://www.scwaters.org/mpage/scec_presenters",name:"SCEC 2027",region:"US",deadline:"",deadlineTime:"",city:"Myrtle Beach",state:"SC",country:"US",url:"https://www.scwaters.org/mpage/scec",confDates:"Mar 14–17, 2027",venue:"Sheraton Myrtle Beach Convention Center, Myrtle Beach SC",notes:"2027 dates confirmed. Joint WEASC/SCAWWA. 170+ technical sessions, 2,200+ attendees. Baji: Let Gary do his thing here. CFA opens July 2026 at scwaters.org/mpage/scec_presenters.",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni","pre"],pursueNextYear:"yes"},
+  {id:112,fullName:"Water Environment Association of Utah Annual Conference 2027",cfaUrl:"https://weau.org/Annual_Conference",name:"WEAU 2027",region:"US",deadline:"",deadlineTime:"",city:"St. George",state:"UT",country:"US",url:"https://weau.org/Annual_Conference",confDates:"Apr 20–23, 2027",venue:"Dixie Convention Center, St. George UT",notes:"2027 dates confirmed. Registration opens Jan 2027. No CFA details posted yet — check weau.org/Annual_Conference. Previously presented 2026 (Riley).",status:"monitoring",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:"",cats:["muni","pre"],pursueNextYear:"maybe"},
+
+  {id:123,fullName:"Nevada Water Environment Association Annual Conference 2027",cfaUrl:"https://www.nvwea.org/conferenceabstract",name:"NVWEA 2027",region:"US",deadline:"2026-09-18",deadlineTime:"",city:"Reno",state:"NV",country:"US",url:"https://www.nvwea.org/",confDates:"Feb 2027",venue:"Grand Sierra Resort (GSR), Reno NV",notes:"CFA OPEN — deadline Sep 18 2026. Riley interested: Yucaipa, LOTT (pending summer data), NapaSan. Forwarded by Jenn Fisher Jun 1 2026 via NVWEA email list.",status:"planning",techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"Riley Murnane",presDetails:"",cats:["muni","pre"],pursueNextYear:"yes"},
+  {id:113,fullName:"IFAT Munich 2028 — World's Leading Trade Fair for Environmental Technologies",cfaUrl:"https://www.ifat.de/en/",name:"IFAT Munich 2028",region:"EUR",deadline:"",deadlineTime:"",city:"Munich",state:"",country:"Germany",url:"https://www.ifat.de/en/",confDates:"May 29–Jun 1, 2028",venue:"Messe Munich",notes:"Biennial trade fair. Confirmed dates: May 29–Jun 1, 2028. Moleaer exhibited at IFAT 2026. Monitor ifat.de for exhibitor/abstract opportunities. No CFA — exhibitor format.",status:"monitoring",noCfp:true,techPaper:false,paperDeadline:"",paperDeadlineTime:"",presenter:"",presDetails:""}
+];
+
+const localData=(()=>{try{return JSON.parse(localStorage.getItem('moleaer_v4')||'{}')}catch(e){return{}}})();
+let activeYear=CUR_YEAR,currentFilter='all',currentCatFilter='all',currentSort={col:'deadline',dir:1},searchQuery='';
+
+function getConf(id,yr){
+  const base=(yr===NEXT_YEAR?C2027:C2026).find(c=>c.id===id);
+  if(!base)return{id,name:'Unknown',status:'monitoring',deadline:'',city:'',state:'',country:'',region:'US'};
+  return{...base,...(localData[id]||{})};
+}
+function saveLocal(id,u){localData[id]={...(localData[id]||{}),...u};try{localStorage.setItem('moleaer_v4',JSON.stringify(localData))}catch(e){}}
+
+// ── DELIVERABLE HELPERS ───────────────────────────────────────────────────────
+function getDeliverables(c){
+  // Returns deliverables for accepted/ready conferences
+  // Fires on any set deadline — techPaper/presRequired flags no longer gate this
+  if(c.status!=='accepted'&&c.status!=='ready') return[];
+  const items=[];
+  if(c.paperDeadline){
+    // Use custom label if set, else infer from flags
+    const label=c.paperDeadlineLabel||( c.techPaper?'Tech Paper':c.presRequired?'Presentation':'Deliverable');
+    items.push({label,deadline:c.paperDeadline,deadlineTime:c.paperDeadlineTime||'',days:getDays(c.paperDeadline)});
+  }
+  if(c.presDeadline) items.push({label:'Presentation',deadline:c.presDeadline,deadlineTime:c.presDeadlineTime||'',days:getDays(c.presDeadline)});
+  if(c.posterDeadline) items.push({label:'Poster',deadline:c.posterDeadline,deadlineTime:c.posterDeadlineTime||'',days:getDays(c.posterDeadline)});
+  return items;
+}
+
+function hasUrgentDeliverable(c,window=30){
+  return getDeliverables(c).some(d=>d.days!==null&&d.days>=0&&d.days<=window);
+}
+
+function needsAbstractAction(c){
+  // Abstract deadline is urgent only if not yet submitted/approved/missed
+  const d=getDays(c.deadline);
+  return d!==null&&d>=0&&d<=30&&(c.status==='monitoring'||c.status==='planning')&&c.submitIntent!=='no';
+}
+
+function renderSummary(){
+  const all=activeList();
+  const submitted=all.filter(c=>c.status==='submitted').length;
+
+  // Planning — scan ALL years so NEWEA 2027 shows even on 2026 tab
+  const allYears=[...getActive2026(),...[...C2027,...getAuto2027()].map(c=>getConf(c.id,NEXT_YEAR))];
+  const planning=allYears.filter(c=>c.status==='planning').length;
+
+  // Urgent counts across all years — both abstract deadlines AND deliverables
+  const urgent=allYears.filter(c=>needsAbstractAction(c)||hasUrgentDeliverable(c)).length;
+  const label=activeYear==='archived'?'archived':activeYear;
+
+  // To Present = accepted/ready with conf date in the future (current tab only)
+  const toPresent=all.filter(c=>{
+    if(!['accepted','ready'].includes(c.status)) return false;
+    if(!c.confDate) return true;
+    return new Date(c.confDate)>=TODAY;
+  }).length;
+
+  // Total Won = ALL C2026 entries that were ever accepted (including archived) — scan base data
+  const grandWon=activeYear===CUR_YEAR
+    ? C2026.map(c=>getConf(c.id,CUR_YEAR)).filter(c=>['accepted','ready'].includes(c.status)).length
+    : activeYear===NEXT_YEAR
+      ? [...C2027,...getAuto2027()].map(c=>getConf(c.id,NEXT_YEAR)).filter(c=>['accepted','ready'].includes(c.status)).length
+      : all.filter(c=>['accepted','ready'].includes(c.status)).length;
+
+  document.getElementById('summaryBar').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Tracked</div><div class="stat-value" style="color:var(--blue)">${all.length}</div><div class="stat-sub">${label} conferences</div></div>
+    <div class="stat-card"><div class="stat-label">🎤 To Present</div><div class="stat-value" style="color:var(--accepted)">${toPresent}</div><div class="stat-sub">upcoming accepted</div></div>
+    <div class="stat-card"><div class="stat-label">🏆 Total Won</div><div class="stat-value" style="color:var(--accepted);opacity:0.7">${grandWon}</div><div class="stat-sub">${label} accepted total</div></div>
+    <div class="stat-card"><div class="stat-label">Submitted</div><div class="stat-value" style="color:var(--submitted)">${submitted}</div><div class="stat-sub">awaiting decision</div></div>
+    <div class="stat-card"><div class="stat-label">📋 In Planning</div><div class="stat-value" style="color:var(--planning)">${planning}</div><div class="stat-sub">all years</div></div>
+    <div class="stat-card"><div class="stat-label">⚡ Action Items</div><div class="stat-value" style="color:var(--urgent)">${urgent}</div><div class="stat-sub">abstracts &amp; deliverables</div></div>`;
+}
+
+function renderAlerts(){
+  // Scan ALL years for action items — alerts are global regardless of active tab
+  const all2026=getActive2026();
+  const all2027=[...C2027,...getAuto2027()].map(c=>getConf(c.id,NEXT_YEAR));
+  const allConfs=[...all2026,...all2027];
+
+  // Build unified action items — both abstract deadlines AND deliverable deadlines
+  const actions=[];
+
+  // Abstract deadlines ≤30 days (monitoring/planning)
+  allConfs.filter(c=>needsAbstractAction(c)).forEach(c=>{
+    const d=getDays(c.deadline);
+    const mal=toMalaga(c.deadline,c.deadlineTime||'');
+    actions.push({c, days:d, deadline:c.deadline, deadlineTime:c.deadlineTime||'', mal, label:'Abstract Submission', type:'abstract'});
+  });
+
+  // Deliverable deadlines ≤30 days (accepted/ready)
+  allConfs.forEach(c=>{
+    getDeliverables(c).forEach(d=>{
+      if(d.days!==null&&d.days>=0&&d.days<=30){
+        const mal=toMalaga(d.deadline,d.deadlineTime||'');
+        actions.push({c, days:d.days, deadline:d.deadline, deadlineTime:d.deadlineTime||'', mal, label:d.label, type:'deliverable'});
+      }
+    });
+  });
+
+  // Sort by days ascending
+  actions.sort((a,b)=>a.days-b.days);
+
+  // On deck — open CFAs, 31–120 days out
+  const ondeck=allConfs.filter(c=>{
+    const d=getDays(c.deadline);
+    return d!==null&&d>30&&d<=120
+      &&(c.status==='monitoring'||c.status==='planning')
+      &&c.submitIntent!=='no'
+      &&c.deadline!=='NA'&&c.deadline!=='N/A'&&c.deadline!=='';
+  }).sort((a,b)=>getDays(a.deadline)-getDays(b.deadline));
+
+  const el=document.getElementById('alertSection');
+  let html='';
+  if(actions.length||ondeck.length) html='<div class="alert-wrap">';
+
+  if(actions.length){
+    html+=`<div class="alert-banner ab-urgent"><div class="alert-hdr ah-urgent">⚡ Action Required — Within 30 Days</div>
+    ${actions.map(({c,days,deadline,mal,label,type})=>{
+      const dlStr=deadline.split(' ')[0];
+      const daysStr=days===0?'TODAY':days+'d left';
+      const typeIcon=type==='deliverable'?'📋':'📝';
+      return`<div class="alert-item ai-urgent" style="cursor:pointer" title="Click to open ${c.name}">
+        <div class="a-conf" onclick="openModal(${c.id})">${c.name} <span style="font-weight:400;color:var(--muted);font-size:11px">· ${typeIcon} ${label}</span></div>
+        <div class="a-dl" onclick="openModal(${c.id})">${dlStr}</div>
+        <div class="a-mal a-mal-urgent" onclick="openModal(${c.id})">${mal?mal.str:'—'}</div>
+        <div class="a-days a-days-urgent" onclick="openModal(${c.id})">${daysStr}</div>
+        <div class="status-picker" onclick="event.stopPropagation()">${statusPickerHTML(c)}</div>
+      </div>`;}).join('')}
+    </div>`;
+  }
+
+  if(ondeck.length){
+    html+=`<div class="alert-banner ab-ondeck">
+      <div class="alert-hdr" style="background:var(--surface2);border-bottom-color:var(--border);color:var(--muted)">📅 On Deck — Open CFAs (31–120 days)</div>
+      ${ondeck.map(c=>{
+        const d=getDays(c.deadline);
+        const mal=toMalaga(c.deadline,c.deadlineTime||'');
+        return`<div class="alert-item" style="border-bottom-color:var(--border);color:var(--muted);cursor:pointer" title="Click to open ${c.name}">
+          <div class="a-conf" style="color:var(--text)" onclick="openModal(${c.id})">${c.name} <span style="font-size:11px;font-weight:400">· 📝 Abstract Submission</span></div>
+          <div class="a-dl" style="color:var(--muted)" onclick="openModal(${c.id})">${c.deadline.split(' ')[0]}</div>
+          <div style="font-size:11px;color:var(--muted);min-width:80px" onclick="openModal(${c.id})">${mal?mal.str:'—'}</div>
+          <div style="font-size:11px;font-weight:600;color:var(--muted);min-width:50px" onclick="openModal(${c.id})">${d}d</div>
+          <div class="status-picker" onclick="event.stopPropagation()">${statusPickerHTML(c)}</div>
+        </div>`;}).join('')}
+    </div>`;
+  }
+
+  if(actions.length||ondeck.length) html+='</div>';
+  el.innerHTML=html;
+}
+
+function getFiltered(){
+  // Restore standard thead (may have been replaced by archived view)
+  document.querySelector('thead tr').innerHTML=`
+    <th onclick="sortBy('name',this)">Conference ↕</th>
+    <th onclick="sortBy('location',this)">Location ↕</th>
+    <th onclick="sortBy('status',this)" class="col-status">Status ↕</th>
+    <th onclick="sortBy('deadline',this)"${currentSort.col==='deadline'?' class="sorted"':''}>Abstract Deadline ↑</th>
+    <th>Deadline Time</th><th class="col-mal">Málaga CEST</th><th>Days Left</th>
+    <th>Deliverable Due</th><th>Presenter(s)</th><th>Presentation Details</th><th>Notes</th><th>Portal</th>`;
+  let data=activeList();
+  if(searchQuery){const q=searchQuery.toLowerCase();data=data.filter(c=>c.name.toLowerCase().includes(q)||(c.city||'').toLowerCase().includes(q)||(c.state||'').toLowerCase().includes(q)||(c.presenter||'').toLowerCase().includes(q)||(c.notes||'').toLowerCase().includes(q));}
+  if(currentFilter==='urgent'){data=data.filter(c=>needsAbstractAction(c)||hasUrgentDeliverable(c));}
+  else if(currentFilter==='paper'){data=data.filter(c=>hasUrgentDeliverable(c,60));}
+  else if(currentFilter==='not-pursuing'){data=data.filter(c=>c.status==='not-pursuing');}
+  else if(currentFilter==='rejected'){data=data.filter(c=>c.status==='rejected');}
+  else if(currentFilter==='pass'){data=data.filter(c=>c.status==='pass');}
+  else if(currentFilter!=='all'){data=data.filter(c=>c.status===currentFilter);}
+  // Category sub-filter — applied on top of status filter
+  if(currentCatFilter!=='all'){data=data.filter(c=>(c.cats||[]).includes(currentCatFilter));}
+  data.sort((a,b)=>{
+    if(currentSort.col==='name')return currentSort.dir*a.name.localeCompare(b.name);
+    if(currentSort.col==='status')return currentSort.dir*a.status.localeCompare(b.status);
+    if(currentSort.col==='location')return currentSort.dir*(a.city||'').localeCompare(b.city||'');
+    if(currentSort.col==='deadline'){const da=getDays(a.deadline),db=getDays(b.deadline);if(da===null&&db===null)return 0;if(da===null)return 1;if(db===null)return -1;return currentSort.dir*(da-db);}
+    return 0;
+  });
+  return data;
+}
+
+function getArchivedByYear(){
+  // Group archived conferences by their conf year
+  const byYear={};
+  const archived=C2026.map(c=>getConf(c.id,CUR_YEAR)).filter(c=>isArchived(c));
+  archived.forEach(c=>{
+    const yr=c.confDate?new Date(c.confDate).getFullYear():CUR_YEAR;
+    if(!byYear[yr]) byYear[yr]=[];
+    byYear[yr].push(c);
+  });
+  return byYear;
+}
+
+let archivedYearFilter=null;
+
+function renderArchivedTable(){
+  const allArchived=C2026.map(c=>getConf(c.id,CUR_YEAR)).filter(c=>isArchived(c));
+  const byYear=getArchivedByYear();
+  const years=Object.keys(byYear).map(Number).sort((a,b)=>b-a);
+  if(!archivedYearFilter||!byYear[archivedYearFilter]) archivedYearFilter=years[0]||CUR_YEAR;
+  const data=(byYear[archivedYearFilter]||[]).sort((a,b)=>new Date(b.confDate)-new Date(a.confDate));
+
+  const tbody=document.getElementById('tableBody');
+  const empty=document.getElementById('emptyState');
+  document.getElementById('resultCount').textContent='';
+
+  // Year sub-tabs
+  const subTabHtml=`<div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:0;padding:0 40px;background:var(--surface2)">
+    ${years.map(yr=>`<div onclick="archivedYearFilter=${yr};renderArchivedTable()" style="padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid ${archivedYearFilter===yr?'var(--blue)':'transparent'};color:${archivedYearFilter===yr?'var(--blue)':'var(--muted)'};margin-bottom:-2px">${yr} <span style="font-size:10px;background:var(--border);border-radius:10px;padding:1px 6px">${byYear[yr].length}</span></div>`).join('')}
+  </div>`;
+  document.getElementById('archivedSubTabs').innerHTML=subTabHtml;
+
+  // Update thead for archived view
+  document.querySelector('thead tr').innerHTML=`
+    <th>Conference</th><th>Location</th><th>Conf Date</th>
+    <th>Status</th><th>Presenter(s)</th><th>Presentation Details</th><th>Notes</th><th>Portal</th>`;
+
+  if(!data.length){
+    tbody.innerHTML='';
+    empty.style.display='block';
+    empty.querySelector('p').textContent='No archived conferences for '+archivedYearFilter+'.';
+    return;
+  }
+  empty.style.display='none';
+
+  tbody.innerHTML=data.map(c=>{
+    const loc=[c.city,c.state].filter(Boolean).join(', ');
+    const regionTag=c.region==='EUR'?'<span class="tag tag-eur">EUR</span>':'<span class="tag tag-us">US</span>';
+    const paperTag=c.techPaper?'<span class="tag tag-paper">paper</span>':'';
+    const noCfpTag=c.noCfp?'<span class="tag tag-nocfp">no CFA</span>':'';
+    const presenter=c.presenter?`<span class="presenter-cell">${c.presenter}</span>`:`<span class="presenter-empty">—</span>`;
+    const presDetails=c.presDetails?`<span class="pres-detail">${c.presDetails}</span>`:`<span class="presenter-empty">—</span>`;
+    const portal=c.url?`<a href="${c.url}" target="_blank" class="link-btn" onclick="event.stopPropagation()">↗</a>`:`<span style="color:var(--muted)">—</span>`;
+    const confDateFmt=c.confDate?new Date(c.confDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    return`<tr class="archived-row" onclick="openModal(${c.id})">
+      <td><div class="conf-name">${c.name}</div><div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">${regionTag}${paperTag}${noCfpTag}</div></td>
+      <td class="loc-cell">${loc||'—'}</td>
+      <td class="dl-cell" style="color:var(--muted)">${confDateFmt}</td>
+      <td><span class="pill pill-${c.status}"><div class="pdot"></div>${c.status==='not-pursuing'?'Not Pursuing':c.status==='ready'?'Ready':c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span></td>
+      <td>${presenter}</td><td>${presDetails}</td>
+      <td class="notes-cell">${c.notes||'—'}</td>
+      <td>${portal}</td>
+    </tr>`;
+  }).join('');
+}
+
+// OLD renderArchivedTable replaced
+function _OLD_renderArchivedTable(){
+  const data=getArchived().sort((a,b)=>new Date(b.confDate)-new Date(a.confDate));
+  const tbody=document.getElementById('tableBody');
+  const empty=document.getElementById('emptyState');
+  document.getElementById('resultCount').textContent='';
+
+  // Update thead for archived view
+  document.querySelector('thead tr').innerHTML=`
+    <th>Conference</th><th>Location</th><th>Conf Date</th>
+    <th>Status</th><th>Presenter(s)</th><th>Presentation Details</th><th>Notes</th><th>Portal</th>`;
+
+  if(!data.length){
+    tbody.innerHTML='';
+    empty.style.display='block';
+    empty.querySelector('p').textContent='No archived conferences yet.';
+    return;
+  }
+  empty.style.display='none';
+
+  tbody.innerHTML=data.map(c=>{
+    const loc=[c.city,c.state].filter(Boolean).join(', ');
+    const regionTag=c.region==='EUR'?'<span class="tag tag-eur">EUR</span>':'<span class="tag tag-us">US</span>';
+    const paperTag=c.techPaper?'<span class="tag tag-paper">paper</span>':'';
+    const noCfpTag=c.noCfp?'<span class="tag tag-nocfp">no CFA</span>':'';
+    const presenter=c.presenter?`<span class="presenter-cell">${c.presenter}</span>`:`<span class="presenter-empty">—</span>`;
+    const presDetails=c.presDetails?`<span class="pres-detail">${c.presDetails}</span>`:`<span class="presenter-empty">—</span>`;
+    const portal=c.url?`<a href="${c.url}" target="_blank" class="link-btn" onclick="event.stopPropagation()">↗</a>`:`<span style="color:var(--muted)">—</span>`;
+    const confDateFmt=c.confDate?new Date(c.confDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    return`<tr class="archived-row" onclick="openModal(${c.id})">
+      <td><div class="conf-name">${c.name}</div><div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">${regionTag}${paperTag}${noCfpTag}</div></td>
+      <td class="loc-cell">${loc||'—'}</td>
+      <td class="dl-cell" style="color:var(--muted)">${confDateFmt}</td>
+      <td><span class="pill pill-${c.status}"><div class="pdot"></div>${c.status}</span></td>
+      <td>${presenter}</td><td>${presDetails}</td>
+      <td class="notes-cell">${c.notes||'—'}</td>
+      <td>${portal}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTable(){
+  if(activeYear==='archived'){renderArchivedTable();return;}
+  const data=getFiltered();
+  const tbody=document.getElementById('tableBody');
+  const empty=document.getElementById('emptyState');
+  document.getElementById('resultCount').textContent=data.length+' shown';
+  if(!data.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  tbody.innerHTML=data.map(c=>{
+    const days=getDays(c.deadline);
+    const dl=(c.deadline&&c.deadline!=='NA'&&c.deadline!=='N/A'&&c.deadline!=='')?c.deadline.split(' ')[0]:null;
+    let dlHtml='<span class="dl-na">—</span>',dHtml='';
+    if(dl){
+      if(days<0){dlHtml=`<span class="dl-past">${dl}</span>`;dHtml=`<span class="db db-past">past</span>`;}
+      else if(days<=7){dlHtml=`<span class="dl-urgent">${dl}</span>`;dHtml=`<span class="db db-urgent">${days===0?'TODAY':days+'d'}</span>`;}
+      else if(days<=30){dlHtml=`<span class="dl-soon">${dl}</span>`;dHtml=`<span class="db db-soon">${days}d</span>`;}
+      else{dlHtml=`<span class="dl-ok">${dl}</span>`;dHtml=`<span class="db db-ok">${days}d</span>`;}
+    }else if(c.deadline==='NA'||c.deadline==='N/A'){dlHtml=`<span class="dl-na">N/A</span>`;}
+    else if(activeYear===NEXT_YEAR){dlHtml=`<span class="dl-na">TBD</span>`;}
+
+    const timeHtml=c.deadlineTime?`<span class="dl-cell time-set">${c.deadlineTime}</span>`:`<span class="time-cell">—</span>`;
+    const mal=toMalaga(c.deadline||'',c.deadlineTime||'');
+    let malHtml='<span class="mal-na">enter time →</span>';
+    if(!dl||c.deadline==='NA'||c.deadline==='N/A'||activeYear===NEXT_YEAR){malHtml='<span class="mal-na">—</span>';}
+    else if(mal){
+      if(days!==null&&days<=7&&days>=0)malHtml=`<span class="mal-urgent">${mal.str}</span>`;
+      else if(days!==null&&days<=30&&days>=0)malHtml=`<span class="mal-soon">${mal.str}</span>`;
+      else malHtml=`<span class="mal-ok">${mal.str}</span>`;
+    }
+
+    let delivHtml='<span class="pdl-na">—</span>';
+    const delivItems=getDeliverables(c);
+    if(delivItems.length){
+      delivHtml=delivItems.map(d=>{
+        if(d.days===null) return`<span style="color:var(--muted);font-size:11px">${d.label}</span>`;
+        if(d.days<0) return`<span class="dl-past" style="font-size:11px">${d.label}</span>`;
+        const cls=d.days<=7?'db-urgent':d.days<=30?'db-paper':'db-ok';
+        return`<div style="white-space:nowrap;font-size:11px"><span style="color:var(--muted)">${d.label}</span> <span class="db ${cls}">${d.days===0?'TODAY':d.days+'d'}</span></div>`;
+      }).join('');
+    }
+
+    const loc=[c.city,c.state].filter(Boolean).join(', ');
+    const presenter=c.presenter?`<span class="presenter-cell">${c.presenter}</span>`:`<span class="presenter-empty">—</span>`;
+    const presDetails=c.presDetails?`<span class="pres-detail">${c.presDetails}</span>`:(c.status==='accepted'?`<span class="pres-detail-empty">add details</span>`:`<span class="presenter-empty">—</span>`);
+    const portal=c.url?`<a href="${c.url}" target="_blank" class="link-btn" onclick="event.stopPropagation()">↗</a>`:`<span style="color:var(--muted)">—</span>`;
+    const isUrgentAbs=needsAbstractAction(c);
+    const isUrgentPaper=hasUrgentDeliverable(c,7);
+    const confDatePassed=c.confDate&&new Date(c.confDate)<TODAY;
+    const isStale=confDatePassed&&(c.status==='submitted'||c.status==='accepted')&&!isArchived(c);
+    const rowCls=isUrgentPaper?'paper-row':isUrgentAbs?'urgent-row':isStale?'stale-row':'';
+    const regionTag=c.region==='EUR'?'<span class="tag tag-eur">EUR</span>':'<span class="tag tag-us">US</span>';
+    const paperTag=c.techPaper?'<span class="tag tag-paper">paper</span>':'';
+    const is27=activeYear===NEXT_YEAR?'<span class="tag tag-27">2027</span>':'';
+    const noCfpTag=c.noCfp?'<span class="tag tag-nocfp">no CFA</span>':'';
+    const catTagMap={muni:'Municipal',ind:'Industrial',pre:'Pretreatment',dew:'Dewatering'};
+    const catTags=(c.cats||[]).map(k=>`<span class="tag tag-${k}">${catTagMap[k]||k}</span>`).join('');
+
+    const confLink=c.url?`<a href="${c.url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--muted);font-size:10px;margin-left:4px;text-decoration:none" title="Conference website">↗</a>`:'';
+    const cfaLink=c.cfaUrl&&c.cfaUrl!==c.url?`<a href="${c.cfaUrl}" target="_blank" onclick="event.stopPropagation()" style="color:var(--paper);font-size:10px;margin-left:2px;text-decoration:none" title="Call for abstracts">📋</a>`:'';
+    const pursueMap={'yes':'<span class="tag tag-pursue-yes" title="Pursue next year">↻ Yes</span>','maybe':'<span class="tag tag-pursue-maybe" title="Maybe pursue next year">↻ ?</span>','no':'<span class="tag tag-pursue-no" title="Not pursuing next year">↻ No</span>'};
+    const pursueTag=c.pursueNextYear?pursueMap[c.pursueNextYear]||'':'';
+
+    // For 2027, show conf dates instead of abstract deadline
+    const dlDisplay=activeYear===NEXT_YEAR?`<span class="dl-na" style="font-style:normal;color:var(--text)">${c.confDates||'TBD'}</span>`:dlHtml;
+    const dDisplay=activeYear===NEXT_YEAR?`<span class="dl-na" style="font-size:10px">${c.venue||''}</span>`:dHtml;
+
+    return `<tr class="${rowCls}" onclick="openModal(${c.id})">
+      <td><div class="conf-name">${c.name}${confLink}${cfaLink}</div><div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">${regionTag}${paperTag}${noCfpTag}${is27}${catTags}${pursueTag}${historyBadgeHTML(c.id)}</div></td>
+      <td class="loc-cell">${loc||'—'}</td>
+      <td class="col-status"><div class="status-picker" onclick="event.stopPropagation()">${statusPickerHTML(c)}</div></td>
+      <td class="dl-cell">${activeYear===NEXT_YEAR?dlDisplay:dlHtml}</td>
+      <td>${activeYear===NEXT_YEAR?`<span class="time-cell">${c.venue||'—'}</span>`:timeHtml}</td>
+      <td class="col-mal">${activeYear===NEXT_YEAR?`<span class="mal-na">—</span>`:malHtml}</td>
+      <td>${activeYear===NEXT_YEAR?dDisplay:dHtml}</td>
+      <td>${delivHtml}</td>
+      <td>${presenter}</td>
+      <td>${presDetails}</td>
+      <td class="notes-cell">${c.notes||'—'}</td>
+      <td>${portal}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal(id){
+  const c=getConf(id,activeYear);
+  const days=getDays(c.deadline);
+  const dl=(c.deadline&&c.deadline!=='NA'&&c.deadline!=='N/A'&&c.deadline!=='')?c.deadline.split(' ')[0]:'TBD';
+  const mal=toMalaga(c.deadline||'',c.deadlineTime||'');
+  const malP=toMalaga(c.paperDeadline||'',c.paperDeadlineTime||'');
+  const is27=activeYear===NEXT_YEAR;
+
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-title">${c.fullName||c.name}${c.fullName&&c.fullName!==c.name?`<div style="font-size:13px;font-weight:400;color:var(--muted);margin-top:4px">${c.name}</div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      ${c.url?`<a href="${c.url}" target="_blank" class="btn btn-primary" style="font-size:11px;padding:5px 12px">↗ Conference Website</a>`:''}
+      ${c.cfaUrl?`<a href="${c.cfaUrl}" target="_blank" class="btn btn-secondary" style="font-size:11px;padding:5px 12px">📋 Call for Abstracts</a>`:(c.url?`<a href="${c.url}" target="_blank" class="btn btn-secondary" style="font-size:11px;padding:5px 12px;opacity:0.6" title="No separate CFA URL — using conference site">📋 CFA (via conf site)</a>`:'')}
+    </div>
+    <div class="modal-grid">
+      <div class="mf"><label>Status</label>
+        <select class="ef" id="e-status">
+          ${['monitoring','planning','submitted','accepted','ready','missed','rejected','not-pursuing','pass'].map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s==='not-pursuing'?'Not Pursuing':s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+        </select></div>
+      <div class="mf"><label>Location</label><div class="val">${[c.city,c.state,c.country].filter(Boolean).join(', ')||'—'}</div></div>
+      <div class="mf"><label>Conference Date</label><div class="val">${c.confDate||'TBD'}</div></div>
+      <div class="mf"><label>Presenter(s)</label>
+        <input class="ef" id="e-presenter" value="${c.presenter||''}" placeholder="e.g. Andrea, Riley"></div>
+    </div>
+    ${is27?`
+    <div class="msec"><h4>Conference Details</h4>
+      <div class="modal-grid">
+        <div class="mf"><label>Conference Dates</label><div class="val">${c.confDates||'TBD'}</div></div>
+        <div class="mf"><label>Venue</label><div class="val">${c.venue||'TBD'}</div></div>
+      </div>
+    </div>`:''}
+    <div class="msec"><h4>${is27?'Abstract Deadline (when announced)':'Abstract Deadline'}</h4>
+      <div class="modal-grid3">
+        <div class="mf"><label>Date</label><div class="val">${is27?'TBD':dl+(days!==null&&days>=0?` · ${days}d`:'')}</div></div>
+        <div class="mf"><label>Time (as listed)</label>
+          <input class="ef" id="e-time" value="${c.deadlineTime||''}" placeholder="e.g. 11:59 PM ET" oninput="previewMal()"></div>
+        <div class="mf"><label>Málaga CEST</label>
+          <div class="mal-preview" id="mal-preview">${mal?mal.str:'Enter time above'}</div></div>
+      </div>
+    </div>
+    <div class="msec" style="margin-top:14px">
+      <h4>Deliverables (if accepted)</h4>
+      <div style="display:grid;gap:14px">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:${(c.techPaper||c.paperDeadline)?'12px':'0'}">
+            <input type="checkbox" id="e-techpaper" ${(c.techPaper||c.paperDeadline)?'checked':''} onchange="toggleDelivSection('paper-section',this.checked)" style="width:14px;height:14px;accent-color:var(--paper)">
+            <label for="e-techpaper" style="font-size:12px;font-weight:600;color:var(--text);cursor:pointer;text-transform:none;letter-spacing:0">📄 Deliverable Deadline (paper, slides, form, etc.)</label>
+          </div>
+          <div id="paper-section" style="display:${(c.techPaper||c.paperDeadline)?'grid':'none'};grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px">
+            <div class="mf" style="grid-column:1/-1"><label>What is due? (label shown in alerts)</label><input class="ef" id="e-paper-label" value="${c.paperDeadlineLabel||''}" placeholder="e.g. Speaker Commitment Form, Presentation Slides, Tech Paper…"></div>
+            <div class="mf"><label>Deadline</label><input class="ef" id="e-paper-dl" value="${c.paperDeadline||''}" placeholder="YYYY-MM-DD" oninput="previewMalPaper()"></div>
+            <div class="mf"><label>Time</label><input class="ef" id="e-paper-time" value="${c.paperDeadlineTime||''}" placeholder="e.g. 11:59 PM ET" oninput="previewMalPaper()"></div>
+            <div class="mf"><label>Málaga CEST</label><div class="mal-preview" id="mal-paper-preview" style="font-size:11px">${malP?malP.str:'Enter above'}</div></div>
+          </div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:${c.presRequired?'12px':'0'}">
+            <input type="checkbox" id="e-presrequired" ${c.presRequired?'checked':''} onchange="toggleDelivSection('pres-section',this.checked)" style="width:14px;height:14px;accent-color:var(--blue)">
+            <label for="e-presrequired" style="font-size:12px;font-weight:600;color:var(--text);cursor:pointer;text-transform:none;letter-spacing:0">🎤 Presentation / PowerPoint Deadline</label>
+          </div>
+          <div id="pres-section" style="display:${c.presRequired?'grid':'none'};grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px">
+            <div class="mf"><label>Deadline</label><input class="ef" id="e-pres-dl" value="${c.presDeadline||''}" placeholder="YYYY-MM-DD"></div>
+            <div class="mf"><label>Time</label><input class="ef" id="e-pres-time" value="${c.presDeadlineTime||''}" placeholder="e.g. 11:59 PM ET"></div>
+            <div class="mf"><label>Details / Session</label><input class="ef" id="e-presdetails" value="${c.presDetails||''}" placeholder="Session, room, date/time…"></div>
+          </div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:${c.posterRequired?'12px':'0'}">
+            <input type="checkbox" id="e-posterrequired" ${c.posterRequired?'checked':''} onchange="toggleDelivSection('poster-section',this.checked)" style="width:14px;height:14px;accent-color:var(--accepted)">
+            <label for="e-posterrequired" style="font-size:12px;font-weight:600;color:var(--text);cursor:pointer;text-transform:none;letter-spacing:0">🪧 Poster Required</label>
+          </div>
+          <div id="poster-section" style="display:${c.posterRequired?'grid':'none'};grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px">
+            <div class="mf"><label>Deadline</label><input class="ef" id="e-poster-dl" value="${c.posterDeadline||''}" placeholder="YYYY-MM-DD"></div>
+            <div class="mf"><label>Time</label><input class="ef" id="e-poster-time" value="${c.posterDeadlineTime||''}" placeholder="e.g. 11:59 PM ET"></div>
+            <div class="mf"><label>Details</label><input class="ef" id="e-posterdetails" value="${c.posterDetails||''}" placeholder="Format, size, location…"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="msec" style="margin-top:14px"><h4>Notes</h4>
+      <textarea class="ef" id="e-notes" rows="2" style="resize:vertical">${c.notes||''}</textarea></div>
+    <div class="msec" style="margin-top:14px"><h4>Conference Impressions</h4>
+      <textarea class="ef" id="e-impressions" rows="3" style="resize:vertical" placeholder="Audience quality, ROI, what went well, what didn't, networking value, would you recommend again…">${c.impressions||''}</textarea>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <label style="font-size:11px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0">Pursue next year?</label>
+        ${['yes','maybe','no',''].map(v=>`<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0">
+          <input type="radio" name="e-pursue" value="${v}" ${(c.pursueNextYear||'')===(v)?'checked':''} style="accent-color:var(--blue)">
+          ${v==='yes'?'✓ Yes':v==='maybe'?'~ Maybe':v==='no'?'✕ No':'— Not set'}
+        </label>`).join('')}
+      </div>
+    </div>
+    <div class="msec" style="margin-top:14px"><h4>Submission Requirements</h4>
+      <textarea class="ef" id="e-req" rows="3" style="resize:vertical" placeholder="Word limit, template, formatting, page limit…">${c.requirements||''}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="saveModal(${c.id})">Save Changes</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    </div>`;
+
+  window._eid=id;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function previewMal(){
+  const c=getConf(window._eid,activeYear);
+  const dl=(c.deadline&&c.deadline!=='NA'&&c.deadline!=='N/A')?c.deadline.split(' ')[0]:'';
+  const m=toMalaga(dl,document.getElementById('e-time').value);
+  document.getElementById('mal-preview').textContent=m?m.str:'Invalid format';
+}
+function previewMalPaper(){
+  const m=toMalaga(document.getElementById('e-paper-dl').value,document.getElementById('e-paper-time').value);
+  document.getElementById('mal-paper-preview').textContent=m?m.str:'Enter date & time';
+}
+
+function toggleDelivSection(id,show){
+  document.getElementById(id).style.display=show?'grid':'none';
+}
+
+function saveModal(id){
+  saveLocal(id,{
+    status:document.getElementById('e-status').value,
+    submitIntent:document.getElementById('e-intent')?document.getElementById('e-intent').value:'',
+    techPaper:document.getElementById('e-techpaper').checked,
+    presRequired:document.getElementById('e-presrequired').checked,
+    posterRequired:document.getElementById('e-posterrequired').checked,
+    presenter:document.getElementById('e-presenter').value,
+    deadlineTime:document.getElementById('e-time').value,
+    paperDeadlineLabel:document.getElementById('e-paper-label')?document.getElementById('e-paper-label').value:'',
+    paperDeadline:document.getElementById('e-paper-dl').value,
+    paperDeadlineTime:document.getElementById('e-paper-time').value,
+    presDeadline:document.getElementById('e-pres-dl').value,
+    presDeadlineTime:document.getElementById('e-pres-time').value,
+    presDetails:document.getElementById('e-presdetails').value,
+    posterDeadline:document.getElementById('e-poster-dl').value,
+    posterDeadlineTime:document.getElementById('e-poster-time').value,
+    posterDetails:document.getElementById('e-posterdetails').value,
+    notes:document.getElementById('e-notes').value,
+    impressions:document.getElementById('e-impressions')?document.getElementById('e-impressions').value:'',
+    pursueNextYear:(document.querySelector('input[name="e-pursue"]:checked')||{}).value||'',
+    requirements:document.getElementById('e-req').value,
+  });
+  closeModal();renderAll();
+}
+
+function closeOverlay(e){if(e.target===document.getElementById('overlay'))closeModal();}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+
+function setFilter(f,btn){
+  currentFilter=f;
+  // Clear active state on status filter buttons only (not cat buttons)
+  document.querySelectorAll('.fb:not(.cat-filter-btn)').forEach(b=>b.className='fb');
+  btn.classList.add('f-'+f);
+  renderTable();
+}
+
+function setCatFilter(f,btn){
+  // Toggle off if already active
+  if(currentCatFilter===f){
+    currentCatFilter='all';
+    btn.className='fb';
+    btn.style.fontWeight='';
+  } else {
+    currentCatFilter=f;
+    document.querySelectorAll('.cat-filter-btn').forEach(b=>{b.className='fb cat-filter-btn';b.style.fontWeight='';});
+    btn.classList.add('f-'+f);
+  }
+  renderTable();
+}
+
+function sortBy(col,th){
+  if(currentSort.col===col)currentSort.dir*=-1;
+  else{currentSort.col=col;currentSort.dir=1;}
+  document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted'));
+  th.classList.add('sorted');
+  renderTable();
+}
+
+function isArchived(c){
+  if(!c.confDate)return false;
+  const d=new Date(c.confDate);
+  return!isNaN(d)&&d<TODAY;
+}
+
+const ALL_STATUSES=['monitoring','planning','submitted','accepted','ready','missed','rejected','not-pursuing','pass'];
+
+function statusPickerHTML(c){
+  const dotColors={'monitoring':'var(--monitoring,#64748b)','planning':'var(--planning,#f59e0b)','submitted':'var(--submitted,#3b82f6)','accepted':'var(--accepted,#10b981)','ready':'var(--accepted,#10b981)','missed':'var(--missed,#dc2626)','rejected':'var(--rejected,#dc2626)','not-pursuing':'var(--not-pursuing,#94a3b8)','pass':'var(--passed,#f59e0b)'};
+  const opts=ALL_STATUSES.map(s=>`<div class="status-opt" onclick="setStatusQuick(${c.id},'${s}')"><span class="pdot" style="background:${dotColors[s]||'#999'}"></span>${statusLabel(s)}</div>`).join('');
+  return`<button class="status-pill-btn" onclick="toggleStatusPicker(this)" title="Click to change status">
+    <span class="pill pill-${c.status}"><div class="pdot"></div>${statusLabel(c.status)}</span>
+  </button>
+  <div class="status-dropdown">${opts}</div>`;
+}
+
+function toggleStatusPicker(btn){
+  // Close any other open pickers first
+  document.querySelectorAll('.status-dropdown.open').forEach(d=>d.classList.remove('open'));
+  const dd=btn.nextElementSibling;
+  const rect=btn.getBoundingClientRect();
+  // Estimate dropdown height (~9 options * 33px each)
+  const ddHeight=300;
+  const spaceBelow=window.innerHeight-rect.bottom;
+  const openAbove=spaceBelow<ddHeight&&rect.top>ddHeight;
+  // Position fixed relative to viewport — never clipped by overflow:hidden ancestors
+  dd.style.left=Math.min(rect.left,window.innerWidth-160)+'px';
+  if(openAbove){
+    dd.style.top='';
+    dd.style.bottom=(window.innerHeight-rect.top+4)+'px';
+  } else {
+    dd.style.bottom='';
+    dd.style.top=(rect.bottom+4)+'px';
+  }
+  dd.classList.toggle('open');
+}
+
+function setStatusQuick(id,status){
+  saveLocal(id,{status});
+  document.querySelectorAll('.status-dropdown.open').forEach(d=>d.classList.remove('open'));
+  renderAll();
+}
+
+document.addEventListener('click',function(){
+  document.querySelectorAll('.status-dropdown.open').forEach(d=>d.classList.remove('open'));
+});
+// Close on any scroll — prevents dropdown staying fixed at old position
+document.addEventListener('scroll',function(){
+  document.querySelectorAll('.status-dropdown.open').forEach(d=>d.classList.remove('open'));
+},true);
+// Also close when the table-wrap scrolls horizontally
+window.addEventListener('load',function(){
+  const tw=document.getElementById('tableWrap');
+  if(tw) tw.addEventListener('scroll',function(){
+    document.querySelectorAll('.status-dropdown.open').forEach(d=>d.classList.remove('open'));
+  });
+});
+
+function statusLabel(s){
+  const map={'not-pursuing':'Not Pursuing','ready':'Ready','monitoring':'Monitoring','planning':'Planning','submitted':'Submitted','accepted':'Accepted','rejected':'Rejected','missed':'Missed','pass':'Passed',};
+  return map[s]||s.charAt(0).toUpperCase()+s.slice(1);
+}
+
+function getArchived(){
+  return C2026.map(c=>getConf(c.id,CUR_YEAR)).filter(c=>isArchived(c));
+}
+
+function getActive2026(){
+  return C2026.map(c=>getConf(c.id,CUR_YEAR)).filter(c=>!isArchived(c));
+}
+
+// Build auto-generated 2027 monitoring entries from archived 2026 conferences
+function getAuto2027(){
+  const existing2027Names=C2027.map(c=>c.name.replace(/\s+\d{4}$/,'').toLowerCase());
+  return getArchived()
+    .filter(c=>{
+      const baseName=c.name.toLowerCase().replace(/\s+\d{4}$/,'');
+      // Exclude: already in 2027 list, no CFA conferences, no URL, exhibitor-only
+      if(!c.url&&!c.cfaUrl) return false;
+      if(c.noCfp) return false;
+      // Exclude if explicitly marked as not pursuing next year
+      if(c.pursueNextYear==='no') return false;
+      return!existing2027Names.some(n=>baseName.includes(n)||n.includes(baseName));
+    })
+    .map((c,i)=>({
+      id:2000+i,
+      name:c.name.replace(/\s+\d{4}$/,'')+' '+NEXT_YEAR,
+      region:c.region,
+      confDate:'',
+      deadline:'',
+      deadlineTime:'',
+      city:c.city,
+      state:c.state,
+      country:c.country,
+      url:c.url,
+      confDates:'TBD',
+      venue:'TBD',
+      notes:'Auto-added from '+CUR_YEAR+' archive. Verify CFA dates.',
+      status:'monitoring',
+      techPaper:false,
+      paperDeadlineLabel:'',
+      paperDeadline:'',
+      paperDeadlineTime:'',
+      presenter:'',
+      presDetails:'',
+      impressions:'',
+      pursueNextYear:'',
+      noCfp:c.noCfp||false,
+      autoGenerated:true
+    }));
+}
+
+function activeList(){
+  if(activeYear==='archived')return getArchived();
+  if(activeYear===NEXT_YEAR)return[...C2027,...getAuto2027()];
+  // When a category filter is active, include archived 2026 entries so nothing is hidden
+  if(currentCatFilter!=='all')return C2026.map(c=>getConf(c.id,CUR_YEAR));
+  return getActive2026();
+}
+
+function setYear(yr,tab){
+  activeYear=yr;
+  document.querySelectorAll('.year-tab').forEach(t=>t.classList.remove('active'));
+  if(tab) tab.classList.add('active');
+  currentFilter='all';
+  currentCatFilter='all';
+  document.querySelectorAll('.fb:not(.cat-filter-btn)').forEach(b=>b.className='fb');
+  const firstFb=document.querySelector('.fb');
+  if(firstFb) firstFb.classList.add('f-all');
+  document.querySelectorAll('.cat-filter-btn').forEach(b=>{b.className='fb cat-filter-btn';});
+  searchQuery='';
+  const si=document.getElementById('searchInput');
+  if(si) si.value='';
+  const isKpi=yr==='kpi';
+  const isArchived=yr==='archived';
+  const ctrl=document.querySelector('.controls');
+  if(ctrl) ctrl.style.display=(isArchived||isKpi)?'none':'flex';
+  const sb=document.getElementById('summaryBar');
+  if(sb) sb.style.display=isKpi?'none':'grid';
+  const lb=document.getElementById('legendBar');
+  if(lb) lb.style.display=isKpi?'none':'flex';
+  const kpiEl=document.getElementById('kpiSection');
+  if(kpiEl) kpiEl.style.display=isKpi?'block':'none';
+  const tw=document.querySelector('.table-wrap');
+  if(tw) tw.style.display=isKpi?'none':'block';
+  if(isKpi){renderKPI();return;}
+  renderAll();
+}
+
+function updateTabCounts(){
+  document.getElementById('count26').textContent=getActive2026().length;
+  document.getElementById('count27').textContent=(C2027.length+getAuto2027().length);
+  document.getElementById('countArchived').textContent=getArchived().length;
+}
+
+document.getElementById('searchInput').addEventListener('input',e=>{searchQuery=e.target.value;renderTable();});
+
+
+// Acceptance log data — manually curated entries
+// year = CONFERENCE year (not submission year — abstracts often submitted the prior year)
+const ACCEPTANCE_LOG=[
+  {year:2026,conf:"PA Rural Water (PRWA)",status:"accepted",project:"Multi-site overview",topic:"Addressing Chronic Process Upsets in Wastewater Treatment: How Nanobubble Technology Transforms Operational Stability and Performance",deliverables:["presentation"],presenter:"TBD",notes:"Course proposal submitted ~Aug 2025 for Mar 23-26 2026 conference. Penn Stater Hotel, State College PA. Outcome unknown — conference has passed."},
+  {year:2025,conf:"WEFTEC 2025 — Innovation Pavilion",status:"accepted",project:"Multiple case studies",topic:"Panel: Nanobubble Pretreatment — Multi-Site Overview",deliverables:["presentation"],presenter:"Andrea White (moderator), John Crisman, Greg Parks (Woodard & Curran)",notes:"2025 WEFTEC Innovation Pavilion, Chicago. Panel presentation multi-site overview. §50 in style guide. Woodard & Curran panelist: Greg Parks, Florida."},
+  {year:2025,conf:"WEFTEC 2025 — Technology Spotlight",status:"accepted",project:"Multiple case studies",topic:"Multi-Site Compilation — Nanobubble Pretreatment Results",deliverables:["presentation"],presenter:"",notes:"2025 WEFTEC Technology Spotlight, Chicago. Multi-site compilation. §51 in style guide."},
+  {year:2025,conf:"WEFTEC 2025 — Innovative Technology of the Year Award",status:"accepted",project:"",topic:"Innovative Technology of the Year Award",deliverables:["presentation"],presenter:"",notes:"2025 WEFTEC, Chicago. Award recognition."},
+  {year:2025,conf:"NEWEA 2025",status:"accepted",project:"Derby Street Shoppes (QAC inhibition, RBC process)",topic:"Nanobubble Pretreatment: Overcoming QAC Inhibition and Intensifying Nutrient Removal — Derby Street Shoppes Case Study",deliverables:["presentation"],presenter:"Andrea White",notes:"NEWEA Annual Conference Jan 2025, Boston MA. Derby Street Shoppes case study — QAC inhibition, RBC process. §48 in style guide."},
+  {year:2025,conf:"CWEA AC25",status:"accepted",project:"Multiple case studies",topic:"Nanobubble Pretreatment as a Biocatalytic Process Intensification Strategy",deliverables:["presentation"],presenter:"Andrea White P.E. (lead), John Crisman",notes:"CWEA Annual Conference 2025. Presentation proposal format (pre-formal abstract). Multi-site overview. §44 in style guide."},
+  {year:2025,conf:"CSWEA 2025",status:"accepted",project:"Multiple case studies incl. unnamed CA MLE facility",topic:"Nanobubble Pretreatment: Process Intensification for Nutrient Removal and Digestion Performance",deliverables:["presentation"],presenter:"Andrea White P.E. (lead), John Crisman",notes:"98th Annual Meeting, Monona Terrace Madison WI, May 28-30 2025. 5-yr CA MLE data: −32% TN, +85% TWAS solids, +30% biogas, +17% biomass, −18% aeration energy. §45 in style guide."},
+  {year:2025,conf:"Chesapeake Tri-Association 2025",status:"accepted",project:"Multiple case studies incl. CA MLE case study",topic:"Nanobubble Pretreatment: Intensifying Nutrient Removal to Overcome Operational Challenges",deliverables:["presentation"],presenter:"Andrea White P.E.",notes:"Accepted Apr 17 2025 (Sophia Z. Liskovich). Speaker portal deadline Apr 24. CA MLE case study close. §46 in style guide."},
+  {year:2025,conf:"Industrial Water Solutions 2025",status:"accepted",project:"Meister Cheese (Wisconsin dairy)",topic:"From Inhibition to Innovation: Nanobubble Technology in Industrial Dairy Wastewater Treatment",deliverables:["presentation"],presenter:"John Crisman P.E.",notes:"WateReuse IWS 2025. Original Meister presentation — sequel presented IWS 2026. §47 in style guide."},
+  {year:2025,conf:"NW Biosolids 2025",status:"accepted",project:"",topic:"",deliverables:["presentation"],presenter:"",notes:"Northwest Biosolids conference 2025. Details TBD — abstract not yet in style guide."},
+  {year:2025,conf:"Ozwater 2025",status:"accepted",project:"",topic:"",deliverables:["presentation"],presenter:"",notes:"Ozwater conference 2025 (Australia). International. Details TBD."},
+  {year:2025,conf:"PNCWA 2025",status:"accepted",project:"Multiple case studies (multi-site compilation)",topic:"Nanobubble Pretreatment as a Biocatalytic Process Intensification Strategy",deliverables:["presentation"],presenter:"Andrea White",notes:"Pacific Northwest Clean Water Association Annual Conference 2025. Multi-site compilation. §49 in style guide."},
+  {year:2025,conf:"Tri-State Seminar 2025",status:"accepted",project:"",topic:"",deliverables:["presentation"],presenter:"",notes:"Tri-State Seminar (CA/NV/AZ) 2025. Alternate presentation slot. Details TBD."},
+  {year:2025,conf:"WEAO 2025",status:"accepted",project:"",topic:"",deliverables:["presentation"],presenter:"",notes:"Water Environment Association of Ontario Annual Conference 2025. Details TBD."},
+  {year:2025,conf:"Western Canada Water & Wastewater 2025",status:"accepted",project:"",topic:"",deliverables:["presentation"],presenter:"",notes:"WCWWA 2025. Won but declined — not presented."},
+  {year:2026,conf:"FBEC 2026",status:"rejected",project:"Meister Cheese",topic:"Poster — Nanobubble pretreatment for food & beverage industrial wastewater",deliverables:["poster"],presenter:"",notes:"Poster abstract not approved. Confirmed by Jenn May 2026."},
+  {year:2026,conf:"WateReuse Symposium 2026",status:"rejected",project:"Yucaipa (WRWRF)",topic:"Nanobubble Pretreatment as a Biocatalytic Process Intensification Strategy: Stabilizing BNR and Enhancing AWT Performance",deliverables:["presentation"],presenter:"Andrea",notes:"Submitted Jul 2025. Not selected. Angle: NB impact on downstream AWT/reuse (MF/RO/UV) reliability and Title 22 compliance."},
+  {year:2026,conf:"AZ Water Conference",status:"rejected",project:"Yucaipa (WRWRF)",topic:"Nanobubble Technology Restores Stability & Improves BNR Performance Through Process Intensification",deliverables:["presentation"],presenter:"Riley",notes:"Submitted Oct 2025. Not selected. Key results: 16% more primary TSS removal, 40% lower SVI, 67% less effluent ammonia, 24% less aeration energy, 100% reliable reuse."},
+  {year:2026,conf:"WEF RBTT 2026 — Yucaipa",status:"rejected",project:"Yucaipa (WRWRF)",topic:"Reversing Nitrification Inhibition: Nanobubble Pretreatment Provides Process Intensification and Eliminates Ammonia Upsets",deliverables:[],presenter:"",notes:"Submitted Jan 2026. Not selected. Full logistic regression analysis — NB reduced upset probability 90%, equivalent to 18°F temp increase."},
+  {year:2026,conf:"Rocky Mountain Water Conference",status:"rejected",project:"",topic:"",deliverables:["presentation"],presenter:"Riley Murnane",notes:"Rejected 2026. Rocky Mtn_Lost folder confirmed."},
+  {year:2026,conf:"WEAU Annual Conference",status:"rejected",project:"",topic:"",deliverables:["presentation"],presenter:"Riley Murnane",notes:"Rejected 2026. WEA Utah_Lost folder confirmed."},
+  {year:2026,conf:"Tri-State Seminar 2026 — CWS",status:"accepted",project:"Clean Water Services (CWS)",topic:"",deliverables:["presentation"],presenter:"Riley Murnane",notes:"CWS abstract accepted. Tri State Seminar_Won folder confirmed. Aug 5 2026, Las Vegas NV."},
+  {year:2026,conf:"Tri-State Seminar 2026 — Yucaipa",status:"rejected",project:"Yucaipa Valley Water District",topic:"",deliverables:[],presenter:"",notes:"Yucaipa abstract rejected."},
+  {year:2026,conf:"Chesapeake Tri-Association 2026",status:"accepted",project:"Multiple case studies",topic:"Nanobubble Pretreatment as an Intensification Strategy",deliverables:["presentation"],presenter:"",notes:"Accepted — confirmed by Jenn May 2026. Sep 2026, Ocean City MD. Multi-site overview."},
+  {year:2026,conf:"WEFTEC 2026 — Meister Cheese (Accepted)",status:"accepted",project:"Meister Cheese (Wisconsin dairy)",topic:"Cheese Wastewater: Nanobubbles Enhance Digestion, Nutrient Removal, and Energy Recovery",deliverables:["presentation","paper"],presenter:"Riley Murnane",notes:"ACCEPTED May 15 2026. Confirmation in speaker portal due Jun 1 URGENT. Paper due Jul 8 9AM EST. Sep 28-30 2026, New Orleans. Speaker portal: ww5.aievolution.com/wef/."},
+  {year:2026,conf:"WEFTEC 2026 — BNR/Yucaipa (Accepted)",status:"accepted",project:"Yucaipa Valley Water District / BNR",topic:"Nanobubble Pretreatment Stabilizes BNR and Reduces Energy Intensity",deliverables:["presentation","paper"],presenter:"Andrea White",notes:"ACCEPTED May 15 2026. Confirmation in speaker portal due Jun 1 URGENT. Paper due Jul 8 9AM EST. Sep 28-30 2026, New Orleans."},
+  {year:2026,conf:"NEWEA 2026",status:"accepted",project:"Multiple case studies (Yucaipa, Greer, Veolia TN, Derby St, Jacobs AL)",topic:"Nanobubble Pretreatment: Intensifying Nutrient Removal to Overcome Operational Challenges",deliverables:["presentation"],presenter:"John Crisman (Moleaer, Sr. Water Process Engineer)",notes:"Abstract submitted Jun 2025 (NEWEA_Abstract_06132025.docx). Broad technology overview — not single-project. Results cited: 15-45% lower effluent N, 15-40% lower aeration energy, 40-100% less chemical, 20-35% lower polymer. Jan 2026, Boston MA."},
+  {year:2026,conf:"WEF RBTT — CWS",status:"accepted",project:"CWS (Clean Water Services)",topic:"Improving Dewatering Performance While Reducing Polymer Consumption Using Nanobubble-Conditioned Makedown Water",deliverables:["presentation","paper"],presenter:"Chris Maher (CWS), John Crisman, Andrea White, Riley Murnane (Moleaer)",notes:"Rock Creek WRRF, Hillsboro OR. 17% polymer dose reduction on centrifuge. Presented and paper submitted May 2026."},
+  {year:2026,conf:"WEF RBTT — Greer",status:"accepted",project:"Greer (Maple Creek WWTP)",topic:"Reducing Polymer Demand and Improving Solids Separation Performance Using Nanobubble-Conditioned Polymer Makedown Water",deliverables:["presentation","paper"],presenter:"Daniel Fahr (Greer CPW), Gary Hunter/Lina Herrera Estrada (B&V), John Crisman/Baji Gobburi (Moleaer), Kyle Schoenheit/Cedella Beazley (Xylem)",notes:"Maple Creek WWTP, Greer SC. 5 MGD SBR. 20-35% polymer reduction, cake solids 13→16%, throughput +200-300 gpm. Est. $10K/yr savings. Presented and paper submitted May 2026."},
+  {year:2026,conf:"WEF Residuals & Biosolids (RBTTC)",status:"accepted",project:"CWS (Clean Water Services)",topic:"Reducing Polymer Use and Sludge Handling Costs with Nanobubble-Conditioned Makedown Water",deliverables:["presentation","paper"],presenter:"Sarah Ben-Yoseph (Moleaer)",notes:"May 11-14 2026, Kansas City Convention Center, Room 2102A. Session: Next Generation Biosolids Conditioning Approaches. 17% polymer reduction (28→23 lb/dry ton). Full technical paper in conference proceedings."},
+  {year:2026,conf:"Industrial Water Solutions (IWS)",status:"accepted",project:"Meister Cheese (Wisconsin dairy)",topic:"From Innovation to Optimization: Extended Nanobubble Technology Results in Industrial Dairy Wastewater Treatment",deliverables:["panel"],presenter:"John Crisman (Moleaer)",notes:"Jun 8-10 2026, McCormick Place Chicago. PANEL DISCUSSION — Food Session, Tue Jun 9 10:30 AM–12:00 PM CT. Moderator: Alfa Laval. Co-panelist: Nestlé Purina. Topic: Meister Cheese case study. Sequel to 2024 IWS presentation."},
+  {year:2026,conf:"PNCWA",status:"accepted",project:"LOTT",topic:"LOTT — Stephen Taylor & Paul Jue presenting",deliverables:["presentation"],presenter:"Riley, Stephen Taylor, Paul Jue",notes:""},
+  {year:2026,conf:"CSWEA",status:"accepted",project:"Yucaipa",topic:"Nanobubble Pretreatment as a Biocatalytic Process Intensification Strategy: Stabilizing BNR at Yucaipa Valley Water District",deliverables:["presentation"],presenter:"John Crisman",notes:"Presented May 20, 2026"},
+  {year:2026,conf:"European Waste Water",status:"accepted",project:"",topic:"",deliverables:["presentation"],presenter:"Xylem",notes:""},
+  {year:2026,conf:"CWEA AC26",status:"accepted",project:"Yucaipa (WRWRF)",topic:"Nanobubble Pretreatment as a Biocatalytic Process Intensification Strategy: Stabilizing BNR at Yucaipa Valley Water District",deliverables:["presentation"],presenter:"John Crisman, Andrea White P.E.",notes:"Apr 7-10 2026, Sacramento CA. Room B. Abstract submitted Jul 2025. Key results: 95% fewer ammonia upsets, 24% less blower energy, 20% BNR capacity gain, Title 22 compliance maintained."},
+  {year:2026,conf:"WEFTEC Tech Spotlight — Yucaipa",status:"submitted",project:"Yucaipa (WRWRF)",topic:"Eliminating Cold-Season Ammonia Upsets through Nanobubble Pretreatment for BNR Process Intensification",deliverables:["presentation"],presenter:"Andrea White (Moleaer)",notes:"Submitted 5/15/2026. Booth presentation at WEFTEC 2026, New Orleans. Awaiting acceptance."},
+  {year:2026,conf:"WEFTEC Tech Spotlight — CWS",status:"submitted",project:"CWS (Clean Water Services — Rock Creek WRRF)",topic:"Reducing Dewatering Costs by Optimizing Polymer Utilization with Nanobubble-Conditioned Make-Down Water",deliverables:["presentation"],presenter:"Andrea White (Moleaer)",notes:"Submitted 5/15/2026. Booth presentation at WEFTEC 2026, New Orleans. Awaiting acceptance."},
+  {year:2026,conf:"WEFTEC 2026",status:"submitted",project:"B&V LOTT / Greer / Meister / Yucaipa",topic:"4 technical abstracts",deliverables:["presentation","paper"],presenter:"Andrea",notes:"Awaiting decision"},
+  {year:2026,conf:"IWC",status:"submitted",project:"Meister Cheese",topic:"Industrial Dairy Wastewater — Nanobubble Pretreatment",deliverables:["presentation"],presenter:"",notes:"Awaiting decision"},
+  {year:2027,conf:"NEWEA 2027",status:"submitted",project:"Plymouth MA collection system (Woodard & Curran / City of Plymouth)",topic:"Nanobubble Pretreatment in Collection Systems: H2S and Bioxide Reduction at Plymouth",deliverables:["presentation"],presenter:"Sue (W&C), Cody Ray",notes:"Co-submitted with W&C. Sue submitting, Maureen on NEWEA board. Prelim data: ~40% bioxide reduction, ~70% H2S reduction YOY. Deadline Jun 12 2026."},
+];
+
+function renderKPI(selectedYear){
+  const el=document.getElementById('kpiSection');
+  const log=ACCEPTANCE_LOG;
+  const years=[...new Set(log.map(e=>e.year))].sort((a,b)=>b-a);
+  const curYear=selectedYear||CUR_YEAR;
+
+  // All-time stats (accepted + rejected only — decided outcomes)
+  const allAccepted=log.filter(e=>e.status==='accepted').length;
+  const allRejected=log.filter(e=>e.status==='rejected').length;
+  const allRate=allAccepted+allRejected>0?Math.round(allAccepted/(allAccepted+allRejected)*100):0;
+
+  // Current season (2026) stats
+  const cur=log.filter(e=>e.year===curYear);
+  const curAccepted=cur.filter(e=>e.status==='accepted').length;
+  const curRejected=cur.filter(e=>e.status==='rejected').length;
+  const curSubmitted=cur.filter(e=>e.status==='submitted').length;
+  const curPlanning=cur.filter(e=>e.status==='planning').length;
+  const curRate=curAccepted+curRejected>0?Math.round(curAccepted/(curAccepted+curRejected)*100):0;
+
+  // Deliverables from accepted only
+  const deliverableCounts={presentation:0,paper:0,poster:0};
+  log.filter(e=>e.status==='accepted').forEach(e=>{
+    (e.deliverables||[]).forEach(d=>{if(deliverableCounts[d]!==undefined)deliverableCounts[d]++;});
+  });
+
+  // Year-by-year breakdown
+  const yearRows=years.map(yr=>{
+    const won=log.filter(e=>e.year===yr&&e.status==='accepted').length;
+    const lost=log.filter(e=>e.year===yr&&e.status==='rejected').length;
+    const pct=won+lost>0?Math.round(won/(won+lost)*100):null;
+    return`<div class="year-rate-card">
+      <div class="yr-label">${yr}${yr===curYear?' <span style="font-size:10px;color:var(--blue)">(current)</span>':''}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${won} won · ${lost} lost${pct!==null?' · '+pct+'%':''}</div>
+      ${pct!==null?`<div class="rate-bar"><div class="rate-fill" style="width:${pct}%"></div></div>`:''}
+    </div>`;
+  }).join('');
+
+  // Log — default: accepted + rejected only; toggle shows all
+  const decidedLog=log.filter(e=>e.status==='accepted'||e.status==='rejected').sort((a,b)=>b.year-a.year);
+  const fullLog=[...log].sort((a,b)=>b.year-a.year);
+
+  const logRows=(entries)=>entries.map(e=>`<tr>
+    <td>${e.year}</td>
+    <td style="font-weight:500">${e.conf}</td>
+    <td>${e.project||'—'}</td>
+    <td style="max-width:220px;font-size:11px">${e.topic||'—'}</td>
+    <td><span class="pill pill-${e.status}"><div class="pdot"></div>${e.status==='not-pursuing'?'Not Pursuing':e.status.charAt(0).toUpperCase()+e.status.slice(1)}</span></td>
+    <td>${(e.deliverables||[]).map(d=>`<span class="log-deliverable">${d}</span>`).join('')}</td>
+    <td style="font-size:11px">${e.presenter||'—'}</td>
+    <td style="font-size:11px;color:var(--muted)">${e.notes||''}</td>
+  </tr>`).join('');
+
+  el.innerHTML=`<div class="kpi-wrap">
+
+    <div class="kpi-section">
+      <div class="kpi-section-title" style="display:flex;align-items:center;gap:12px">
+        <span id="kpiSeasonLabel">${curYear} Season</span>
+        <select onchange="renderKPI(parseInt(this.value))" style="font-family:'IBM Plex Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 8px;background:var(--surface);color:var(--text);cursor:pointer">
+          ${years.map(y=>`<option value="${y}"${y===curYear?' selected':''}>${y}</option>`).join('')}
+        </select>
+        <span style="font-size:11px;font-weight:400;color:var(--muted)">(by conference year — abstracts may have been submitted in ${curYear-1})</span>
+      </div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr)">
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--accepted)">${curAccepted}</div><div class="kpi-label">Accepted</div><div class="kpi-sub">selected</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--rejected)">${curRejected}</div><div class="kpi-label">Rejected</div><div class="kpi-sub">not selected</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--submitted)">${curSubmitted}</div><div class="kpi-label">Submitted</div><div class="kpi-sub">awaiting decision</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--planning)">${curPlanning}</div><div class="kpi-label">In Planning</div><div class="kpi-sub">drafting</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--accepted)">${curRate}%</div><div class="kpi-label">Win Rate</div><div class="kpi-sub">decided only</div><div class="rate-bar"><div class="rate-fill" style="width:${curRate}%"></div></div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">${cur.length}</div><div class="kpi-label">Total Tracked</div><div class="kpi-sub">${curYear} log entries</div></div>
+      </div>
+    </div>
+
+    <div class="kpi-section">
+      <div class="kpi-section-title">All-Time</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--accepted)">${allAccepted}</div><div class="kpi-label">Total Accepted</div><div class="kpi-sub">all years</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--rejected)">${allRejected}</div><div class="kpi-label">Total Rejected</div><div class="kpi-sub">all years</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--accepted)">${allRate}%</div><div class="kpi-label">All-Time Win Rate</div><div class="kpi-sub">accepted / decided</div><div class="rate-bar"><div class="rate-fill" style="width:${allRate}%"></div></div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--blue)">${log.length}</div><div class="kpi-label">Total Opportunities</div><div class="kpi-sub">all log entries</div></div>
+      </div>
+      <div class="year-rate-grid">${yearRows}</div>
+    </div>
+
+    <div class="kpi-section">
+      <div class="kpi-section-title">Deliverables (Accepted Abstracts, All-Time)</div>
+      <div style="display:flex;gap:16px">
+        ${Object.entries(deliverableCounts).map(([k,v])=>`<div class="kpi-card" style="flex:1"><div class="kpi-val" style="color:var(--paper);font-size:24px">${v}</div><div class="kpi-label">${k.charAt(0).toUpperCase()+k.slice(1)}s</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="kpi-section">
+      <div class="kpi-section-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>📋 Abstract History</span>
+        <label style="font-size:11px;font-weight:400;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="logShowAll" onchange="toggleLogView(this)" style="cursor:pointer">
+          Show all statuses
+        </label>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Showing accepted &amp; rejected only. Toggle above to include submitted, planning, passed.</div>
+      <table class="log-table" id="abstractLogTable">
+        <thead><tr>
+          <th>Year</th><th>Conference</th><th>Project</th><th>Topic / Title</th><th>Status</th><th>Deliverables</th><th>Presenter</th><th>Notes</th>
+        </tr></thead>
+        <tbody id="abstractLogBody">${logRows(decidedLog)}</tbody>
+      </table>
+    </div>
+  </div>`;
+
+  // Store log data for toggle
+  el._decidedLog=decidedLog;
+  el._fullLog=fullLog;
+  el._logRows=logRows;
+}
+
+function toggleLogView(cb){
+  const el=document.getElementById('kpiSection');
+  const body=document.getElementById('abstractLogBody');
+  const note=body.closest('.kpi-section').querySelector('div[style*="margin-bottom"]');
+  if(cb.checked){
+    body.innerHTML=el._logRows(el._fullLog);
+    if(note) note.textContent='Showing all log entries including submitted, planning, and passed.';
+  } else {
+    body.innerHTML=el._logRows(el._decidedLog);
+    if(note) note.textContent='Showing accepted & rejected only. Toggle above to include submitted, planning, passed.';
+  }
+}
+
+
+function copyWithFallback(text, title, btnId){
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById(btnId);
+    if(btn){const orig=btn.innerHTML;btn.innerHTML='✓ Copied!';btn.style.color='var(--accepted)';btn.style.borderColor='var(--accepted)';setTimeout(()=>{btn.innerHTML=orig;btn.style.color='';btn.style.borderColor='';},2500);}
+  }).catch(()=>{
+    // Clipboard blocked — show fallback modal
+    document.getElementById('promptCopyTitle').textContent=title;
+    document.getElementById('promptCopyText').value=text;
+    document.getElementById('promptCopyOverlay').style.display='flex';
+    setTimeout(()=>{
+      const ta=document.getElementById('promptCopyText');
+      ta.focus();ta.select();
+    },100);
+  });
+}
+
+function copyPromptFromModal(){
+  const ta=document.getElementById('promptCopyText');
+  navigator.clipboard.writeText(ta.value).then(()=>{
+    const btn=document.getElementById('modalCopyBtn');
+    btn.innerHTML='✓ Copied!';
+    setTimeout(()=>{btn.innerHTML='Copy to Clipboard';},2000);
+  }).catch(()=>{ta.select();document.execCommand('copy');});
+}
+
+// Auto-flip tooltips that overflow the left or right edge of viewport
+document.addEventListener('mouseover', function(e){
+  const item = e.target.closest('.legend-item');
+  if(!item) return;
+  const tt = item.querySelector('.tt');
+  if(!tt) return;
+  tt.classList.remove('tt-left');
+  const rect = tt.getBoundingClientRect();
+  if(rect.left < 8) tt.classList.add('tt-left');
+});
+const CONF_HISTORY={
+  115:{won:1,lost:0,attended:0,withdrawn:0,first:2023,last:2023},
+  116:{won:1,lost:0,attended:0,withdrawn:0,first:2023,last:2023},
+  117:{won:1,lost:0,attended:0,withdrawn:0,first:2024,last:2024},
+  118:{won:1,lost:0,attended:0,withdrawn:1,first:2024,last:2024},
+  1:{won:2,lost:0,attended:0,withdrawn:0,first:2025,last:2026},
+  4:{won:1,lost:0,attended:0,withdrawn:0,first:2026,last:2026},
+  5:{won:1,lost:0,attended:0,withdrawn:0,first:2022,last:2022},
+  9:{won:2,lost:2,attended:0,withdrawn:0,first:2022,last:2026},
+  13:{won:1,lost:0,attended:0,withdrawn:0,first:2022,last:2022},
+  16:{won:1,lost:0,attended:0,withdrawn:0,first:2022,last:2022},
+  18:{won:4,lost:0,attended:0,withdrawn:0,first:2023,last:2026},
+  21:{won:0,lost:2,attended:0,withdrawn:0,first:2023,last:2026},
+  22:{won:0,lost:1,attended:0,withdrawn:0,first:2023,last:2023},
+  29:{won:1,lost:0,attended:0,withdrawn:0,first:2026,last:2026},
+  31:{won:3,lost:0,attended:0,withdrawn:0,first:2024,last:2026},
+  32:{won:2,lost:0,attended:0,withdrawn:0,first:2025,last:2026},
+  37:{won:1,lost:0,attended:0,withdrawn:0,first:2025,last:2025},
+  43:{won:1,lost:0,attended:0,withdrawn:0,first:2024,last:2026},
+  44:{won:2,lost:0,attended:0,withdrawn:0,first:2025,last:2026},
+  47:{won:8,lost:8,attended:0,withdrawn:0,first:2019,last:2025},
+  53:{won:1,lost:0,attended:0,withdrawn:0,first:2025,last:2026},
+  55:{won:1,lost:0,attended:0,withdrawn:0,first:2026,last:2026},
+  56:{won:1,lost:0,attended:0,withdrawn:0,first:2026,last:2026},
+  57:{won:8,lost:8,attended:0,withdrawn:0,first:2019,last:2025},
+  58:{won:1,lost:0,attended:0,withdrawn:0,first:2026,last:2026},
+  59:{won:8,lost:8,attended:0,withdrawn:0,first:2019,last:2025},
+  60:{won:0,lost:0,attended:1,withdrawn:0,first:2025,last:2026},
+  101:{won:2,lost:0,attended:0,withdrawn:0,first:2025,last:2026},
+  102:{won:2,lost:2,attended:0,withdrawn:0,first:2022,last:2026},
+  103:{won:4,lost:0,attended:0,withdrawn:0,first:2023,last:2026},
+  104:{won:1,lost:0,attended:0,withdrawn:0,first:2026,last:2026},
+  106:{won:8,lost:8,attended:0,withdrawn:0,first:2019,last:2025},
+  113:{won:0,lost:0,attended:1,withdrawn:0,first:2025,last:2026},
+  114:{won:1,lost:0,attended:0,withdrawn:0,first:2022,last:2022},
+};
+
+
+function historyBadgeHTML(id){
+  const h=CONF_HISTORY[id];
+  if(!h) return '';
+  const parts=[];
+  if(h.won) parts.push(`<span title="${h.won} time${h.won>1?'s':''} accepted/presented" style="color:var(--accepted)">🏆${h.won}</span>`);
+  if(h.lost) parts.push(`<span title="${h.lost} time${h.lost>1?'s':''} submitted, not accepted" style="color:var(--muted)">📬${h.lost}</span>`);
+  if(h.attended) parts.push(`<span title="${h.attended} time${h.attended>1?'s':''} attended/exhibited" style="color:var(--blue)">👁${h.attended}</span>`);
+  if(h.withdrawn) parts.push(`<span title="Withdrawn once" style="color:var(--muted)">↩${h.withdrawn}</span>`);
+  const yr=h.first===h.last?h.first:`${h.first}–${h.last}`;
+  return `<span class="tag tag-history" title="Participation history ${yr}">${parts.join(' ')} <span style="opacity:0.6;font-size:8px">${yr}</span></span>`;
+}
+function renderAll(){updateTabCounts();renderSummary();renderAlerts();renderTable();syncScrollMirror();}
+
+function syncScrollMirror(){
+  const wrap=document.getElementById('tableWrap');
+  const mirror=document.getElementById('scrollMirrorWrap');
+  const inner=document.getElementById('scrollMirrorInner');
+  if(!wrap||!mirror||!inner) return;
+  // Match mirror inner width to table scroll width
+  inner.style.width=wrap.scrollWidth+'px';
+  // Sync scroll positions bidirectionally
+  mirror.onscroll=()=>{ wrap.scrollLeft=mirror.scrollLeft; };
+  wrap.onscroll=()=>{ mirror.scrollLeft=wrap.scrollLeft; };
+}
+
+function exportSession(){
+  const data=localData;
+  const keys=Object.keys(data).filter(k=>!isNaN(k)); // numeric keys = conference overrides
+  const roadmapKeys=['roadmapPriorities','roadmapStatus'];
+
+  // Build human-readable change summary
+  const changes=[];
+  keys.forEach(id=>{
+    const overrides=data[id];
+    const base=C2026.find(c=>c.id===Number(id))||[...C2027,...getAuto2027()].find(c=>c.id===Number(id));
+    if(!base) return;
+    const fields=Object.entries(overrides).map(([k,v])=>`${k}: "${v}"`).join(', ');
+    changes.push(`  - ${base.name} (id:${id}): ${fields}`);
+  });
+
+  const roadmapChanges=roadmapKeys.filter(k=>data[k]).map(k=>`  - ${k}: [edited]`);
+
+  const summary={
+    exportedAt: new Date().toISOString(),
+    exportedBy: 'Moleaer WP Conference Intelligence Agent',
+    device: navigator.userAgent.split(' ').slice(-2).join(' '),
+    totalOverrides: keys.length,
+    description: `This file contains localStorage overrides from a session on ${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}. Feed this back to Claude with the HTML file at the start of a new session to apply these changes permanently into the source file.`,
+    instructions: 'Upload both this JSON file and the HTML tracker file to Claude and say: "Apply these session changes to the tracker HTML file."',
+    changeLog: changes.length ? changes : ['No conference overrides — only roadmap/settings changes'],
+    roadmapChanges: roadmapChanges.length ? roadmapChanges : ['No roadmap changes'],
+    data: data
+  };
+
+  const blob=new Blob([JSON.stringify(summary,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const dateStr=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download=`moleaer-tracker-session-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Flash button
+  const btn=document.getElementById('exportBtn');
+  const orig=btn.innerHTML;
+  btn.innerHTML='✓ Exported!';
+  btn.style.color='var(--accepted)';
+  btn.style.borderColor='var(--accepted)';
+  setTimeout(()=>{btn.innerHTML=orig;btn.style.color='';btn.style.borderColor='';},2500);
+}
+
+function copyScoutPrompt(){
+  const nextYear=TODAY.getFullYear()+1;
+
+  // Part 1: manually added 2027 conferences only (not auto-generated phantoms), excluding 2028+ entries
+  const manual2027=C2027
+    .map(c=>getConf(c.id,NEXT_YEAR))
+    .filter(c=>c.name&&c.name!=='Unknown'&&c.url&&c.url!=='unknown')
+    .filter(c=>!c.name.match(/20(28|29|30)/)); // exclude 2028+ (IFAT 2028 etc)
+  const confList=manual2027.map(c=>`- ${c.name} | ${c.confDates||'dates TBD'} | ${[c.city,c.state,c.country].filter(Boolean).join(', ')||'location TBD'} | URL: ${c.url} | CFA deadline: ${c.deadline||'TBD'}`).join('\n');
+
+  // Part 2: deduplicated, skip "no" pursue, skip noCfp, skip already-in-2027
+  const manual2027Names=new Set(manual2027.map(c=>c.name.replace(/\s*20\d\d\s*/g,'').trim().toLowerCase()));
+  const all2026=C2026.map(c=>getConf(c.id,CUR_YEAR));
+  // Deduplicate by URL — only check each unique URL once
+  const seenUrls=new Set();
+  const EXCLUDE_PATTERNS=/Tech Spotlight|WEFTEC.*Spotlight|Sub-Conference|AD19|Nanobubble 2026/i;
+  const toCheck=all2026
+    .filter(c=>(c.url||c.cfaUrl)&&!c.noCfp)
+    .filter(c=>c.status!=='not-pursuing')
+    .filter(c=>!EXCLUDE_PATTERNS.test(c.name||''))
+    .filter(c=>{
+      const s=c.status; const p=c.pursueNextYear;
+      if(['monitoring','submitted','accepted','complete','ready'].includes(s)) return true;
+      if(s==='rejected') return p==='yes';
+      if(s==='pass') return p==='yes'||p==='maybe';
+      return false;
+    })
+    .filter(c=>!manual2027Names.has(c.name.replace(/\s*20\d\d\s*/g,'').trim().toLowerCase()))
+    .filter(c=>{
+      const url=(c.cfaUrl||c.url||'').split('?')[0];  // deduplicate by base URL
+      if(seenUrls.has(url)) return false;
+      seenUrls.add(url);
+      return true;
+    })
+    .sort((a,b)=>a.name.localeCompare(b.name));
+  const cfaCheckList=toCheck.map(c=>`- ${c.name} | ${c.cfaUrl||c.url}`).join('\n');
+
+  const prompt=`You are helping maintain the Moleaer WP Conference Intelligence Agent — a conference tracker for the Moleaer Water Process team.
+
+## PART 1 — Update existing ${nextYear} conferences
+For each conference below, check the website and find any NEW information not already listed:
+1. Conference dates (if shown as TBD)
+2. Venue / location (if shown as TBD)
+3. Call for Abstracts deadline (if shown as TBD — skip if already known)
+4. Conference theme or focus for ${nextYear}
+
+Skip fetching a conference if all fields are already filled in. For each, return ONLY what changed.
+
+Current ${nextYear} conference list:
+${confList||'  (none manually added yet)'}
+
+## PART 2 — Check 2026 conferences for open ${nextYear} CFAs
+Check each website below to see if a ${nextYear} Call for Abstracts (CFA) is already open or announced.
+
+Rules:
+- If the site returns a 403 / access denied, mark as "blocked — check manually"
+- If the site only shows ${CUR_YEAR} info with no mention of ${nextYear}, mark as "no CFA yet"
+- If a ${nextYear} CFA IS open or announced, extract: CFA deadline, conference dates, venue, theme
+
+For any conference where a ${nextYear} CFA is found open, provide tracker-ready field values:
+  deadline: YYYY-MM-DD
+  confDates: human-readable string (e.g. "Sep 14–16, 2027")
+  venue: venue name + city
+  cfaUrl: direct URL to the CFA page
+
+2026 conferences to check for ${nextYear} CFAs (${toCheck.length} unique sites):
+${cfaCheckList||'  (none)'}
+
+## OUTPUT FORMAT
+Part 1: Table — Conference | What changed | New value
+Part 2: Table — Conference | ${nextYear} CFA open? | Deadline | Conf dates | Venue | Notes
+
+Today's date: ${TODAY.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
+
+  copyWithFallback(prompt,'🔍 Scout Prompt','scoutBtn');
+}
+
+function copyUpdatePrompt(){
+  // Gather current tracker state for the update prompt
+  const all26=getActive2026();
+  const accepted=all26.filter(c=>['accepted','ready'].includes(c.status)).map(c=>`  - ${c.name} | ${c.confDate||'TBD'} | presenter: ${c.presenter||'TBD'} | ${c.status}`).join('\n');
+  const submitted=all26.filter(c=>c.status==='submitted').map(c=>`  - ${c.name} | deadline: ${c.deadline||'TBD'} | presenter: ${c.presenter||'TBD'}`).join('\n');
+  const planning=all26.filter(c=>c.status==='planning').map(c=>`  - ${c.name} | deadline: ${c.deadline||'TBD'}`).join('\n');
+  const urgent=all26.filter(c=>needsAbstractAction(c)).map(c=>`  - ${c.name} | ${getDays(c.deadline)}d left`).join('\n');
+  const all27=[...C2027,...getAuto2027()].map(c=>getConf(c.id,NEXT_YEAR));
+  const planning27=all27.filter(c=>c.status==='planning'||c.status==='monitoring').map(c=>`  - ${c.name} | CFA: ${c.deadline||'TBD'} | ${c.confDates||'dates TBD'}`).join('\n');
+
+  const prompt=`You are helping maintain the Moleaer WP Conference Intelligence Agent — a conference tracker for the Moleaer Water Process team.
+
+Please review the current tracker state below and suggest an updated Project Roadmap. The roadmap has two columns:
+1. "Priorities" — what the team should work on next (ordered by urgency)
+2. "2026 Season Status" — current snapshot of the season: who is presenting, what's pending, what needs follow-up
+
+Format each item as a single line. Use these prefixes: ✓ = done, → = pending/action needed, ⏳ = waiting/blocked.
+
+CURRENT TRACKER STATE (${TODAY.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}):
+
+ACCEPTED/READY (upcoming):
+${accepted||'  (none)'}
+
+SUBMITTED (awaiting decision):
+${submitted||'  (none)'}
+
+PLANNING (abstract to draft):
+${planning||'  (none)'}
+
+URGENT (deadline ≤30 days):
+${urgent||'  (none)'}
+
+2027 PIPELINE:
+${planning27||'  (none)'}
+
+Please write:
+- 5-6 Priority items (what to work on now, in order)
+- 5-6 Season Status items (snapshot of where we stand)
+
+Keep each line under 120 characters. Be specific — name the conference, date, and person where relevant.`;
+
+  copyWithFallback(prompt,'🔄 Update Roadmap Prompt','updateBtn');
+}
+
+// ── Roadmap Editor ──────────────────────────────────────────────────────────
+function getRoadmapData(){
+  const ld=localData;
+  const priorities=(ld.roadmapPriorities!==undefined)?ld.roadmapPriorities:null;
+  const status=(ld.roadmapStatus!==undefined)?ld.roadmapStatus:null;
+  return {priorities, status};
+}
+
+function roadmapItemHTML(line){
+  if(!line.trim()) return '';
+  let dotClass='ri-pending';
+  let text=line;
+  if(line.startsWith('✓')){dotClass='ri-done';text=line.slice(1).trim();}
+  else if(line.startsWith('⏳')){dotClass='ri-waiting';text=line.slice(1).trim();}
+  else if(line.startsWith('→')){dotClass='ri-pending';text=line.slice(1).trim();}
+  return`<div class="roadmap-item"><div class="ri-dot ${dotClass}"></div><span>${text}</span></div>`;
+}
+
+function renderRoadmapFromData(){
+  const {priorities,status}=getRoadmapData();
+  if(!priorities&&!status) return; // use static HTML
+  const pd=document.querySelectorAll('.roadmap-col')[0];
+  const sd=document.querySelectorAll('.roadmap-col')[1];
+  if(priorities&&pd){
+    const lines=priorities.split('\n').filter(l=>l.trim());
+    pd.innerHTML=`<div class="roadmap-col-title">Priorities</div>`+lines.map(roadmapItemHTML).join('');
+  }
+  if(status&&sd){
+    const lines=status.split('\n').filter(l=>l.trim());
+    sd.innerHTML=`<div class="roadmap-col-title">2026 Season Status</div>`+lines.map(roadmapItemHTML).join('');
+  }
+}
+
+function openRoadmapEditor(){
+  const {priorities,status}=getRoadmapData();
+  // If no saved data, extract from current DOM
+  const pdEl=document.querySelectorAll('.roadmap-col')[0];
+  const sdEl=document.querySelectorAll('.roadmap-col')[1];
+  function domToText(col){
+    return Array.from(col.querySelectorAll('.roadmap-item')).map(item=>{
+      const dot=item.querySelector('.ri-dot');
+      const isDone=dot&&dot.classList.contains('ri-done');
+      const isWaiting=dot&&dot.classList.contains('ri-waiting');
+      const prefix=isDone?'✓ ':isWaiting?'⏳ ':'→ ';
+      return prefix+(item.querySelector('span')?item.querySelector('span').textContent:'');
+    }).join('\n');
+  }
+  document.getElementById('rm-priorities').value=priorities||(pdEl?domToText(pdEl):'');
+  document.getElementById('rm-status').value=status||(sdEl?domToText(sdEl):'');
+  const overlay=document.getElementById('roadmapEditorOverlay');
+  overlay.style.display='flex';
+}
+
+function closeRoadmapEditor(){
+  document.getElementById('roadmapEditorOverlay').style.display='none';
+}
+
+function saveRoadmapEdits(){
+  const p=document.getElementById('rm-priorities').value;
+  const s=document.getElementById('rm-status').value;
+  const ld=localData;
+  ld.roadmapPriorities=p;
+  ld.roadmapStatus=s;
+  try{localStorage.setItem('moleaer_v4',JSON.stringify(ld));}catch(e){}
+  renderRoadmapFromData();
+  closeRoadmapEditor();
+}
+
+function toggleRoadmap(btn){
+  const wrap=document.getElementById('roadmapWrap');
+  const b=document.querySelector('.roadmap-show-btn');
+  const open=wrap.classList.toggle('open');
+  b.textContent=open?'▾ Project Roadmap':'▸ Project Roadmap';
+  // If opening roadmap while on KPI tab, switch back to current year first
+  if(open && activeYear==='kpi'){
+    const tab=document.querySelector('.year-tab');
+    setYear(CUR_YEAR, tab);
+  }
+}
+
+document.getElementById('currentDate').innerHTML=`<span title="Today's date">${TODAY.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span><span style="color:var(--border);margin:0 4px">·</span><span title="Tracker data last updated" style="color:var(--muted);font-size:10px">data: ${DATA_LAST_UPDATED}</span>`;
+document.getElementById('scoutYear').textContent=NEXT_YEAR;
+
+// Build year tabs dynamically
+(function buildTabs(){
+  const tabs=document.getElementById('yearTabs');
+  tabs.innerHTML=`
+    <div class="year-tab active" onclick="setYear(${CUR_YEAR},this)">${CUR_YEAR} Season <span class="tab-count" id="count26">--</span></div>
+    <div class="year-tab" onclick="setYear(${NEXT_YEAR},this)">${NEXT_YEAR} Season <span class="tab-count" id="count27">--</span></div>
+    <div class="year-tab" onclick="setYear('archived',this)">📁 Archived <span class="tab-count" id="countArchived">--</span></div>
+    <div class="year-tab" onclick="setYear('kpi',this)">📊 KPI</div>`;
+})();
+
+function renderCfaAlerts(){
+  const col=document.getElementById('cfaAlertCol');
+  if(!col) return;
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const known2027Names=new Set(C2027.map(c=>c.name.replace(/\s*20\d\d/,'').toLowerCase().trim()));
+
+  // ── Section 1: 2026 conferences with a future conf date but NO deadline recorded ──
+  // Only show planning/monitoring — not pass, rejected, complete, not-pursuing
+  const ACTIVE_STATUSES=new Set(['planning','monitoring','submitted','accepted','ready']);
+  const noDeadline=C2026.map(c=>getConf(c.id,CUR_YEAR)).filter(c=>{
+    if(c.noCfp||c.status==='not-pursuing') return false;
+    if(c.pursueNextYear==='no') return false;
+    if(!ACTIVE_STATUSES.has(c.status)) return false;
+    if(c.deadline&&c.deadline!=='') return false;
+    if(!c.confDate) return false;
+    const cd=new Date(c.confDate);
+    return cd>TODAY; // conf still upcoming
+  }).sort((a,b)=>new Date(a.confDate)-new Date(b.confDate));
+
+  // ── Section 2: 2026 conferences with a KNOWN deadline — predict 2027 CFA window ──
+  // Only predict for conferences we plan to pursue (yes/maybe) AND are planning/monitoring
+  const NINETY_DAYS=new Date(TODAY.getTime()+90*86400000);
+  const predicted=[];
+  C2026.forEach(c=>{
+    const conf=getConf(c.id,CUR_YEAR);
+    if(!conf.deadline||conf.deadline===''||conf.deadline==='NA') return;
+    if(conf.noCfp||conf.status==='not-pursuing') return;
+    if(conf.pursueNextYear==='no') return;
+    if(!['yes','maybe'].includes(conf.pursueNextYear||'')) return;
+    // Check if already in 2027
+    const baseName=conf.name.replace(/\s*20\d\d/,'').toLowerCase().trim();
+    if(known2027Names.has(baseName)) return;
+    // Parse 2026 deadline
+    const dl=new Date(conf.deadline);
+    if(isNaN(dl)||dl.getFullYear()!==CUR_YEAR) return;
+    // Predict: same month next year = CFA deadline; opens ~10 weeks before = deadline - 70 days
+    const pred2027Deadline=new Date(dl);
+    pred2027Deadline.setFullYear(NEXT_YEAR);
+    const predOpen=new Date(pred2027Deadline.getTime()-70*86400000);
+    if(predOpen<=NINETY_DAYS){
+      const daysUntilOpen=Math.ceil((predOpen-TODAY)/86400000);
+      predicted.push({conf, predOpen, pred2027Deadline, daysUntilOpen});
+    }
+  });
+  predicted.sort((a,b)=>a.predOpen-b.predOpen);
+
+  // ── Section 3: 2027 known CFAs (already in C2027 with deadlines) ──
+  const known2027Open=C2027.map(c=>getConf(c.id,NEXT_YEAR))
+    .filter(c=>c.deadline&&c.deadline!=='')
+    .sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
+  const known2027Watch=C2027.map(c=>getConf(c.id,NEXT_YEAR))
+    .filter(c=>(!c.deadline||c.deadline==='')&&!c.name.match(/20(28|29|30)/))
+    .sort((a,b)=>(a.confDates||'').localeCompare(b.confDates||''));
+
+  // ── Render ──
+  let html='';
+
+  // No deadline alerts
+  if(noDeadline.length){
+    html+=`<div class="roadmap-col-title" style="color:var(--urgent)">⚠ No CFA Deadline on Record</div>`;
+    html+=`<div class="roadmap-item"><div class="ri-dot ri-waiting"></div><span style="font-size:11px;color:var(--muted);font-style:italic">Upcoming 2026 conf — no abstract deadline found. Check site.</span></div>`;
+    noDeadline.slice(0,6).forEach(c=>{
+      const cd=new Date(c.confDate);
+      const dateStr=MONTHS[cd.getMonth()]+' '+cd.getDate();
+      const link=c.cfaUrl||c.url;
+      html+=`<div class="roadmap-item"><div class="ri-dot ri-alert"></div><span><strong>${c.name}</strong> (${dateStr})${link?` <a href="${link}" target="_blank" style="color:var(--blue)">↗</a>`:''}</span></div>`;
+    });
+  }
+
+  // Predicted openings
+  if(predicted.length){
+    html+=`<div class="roadmap-col-title" style="color:var(--planning);margin-top:10px">🔮 Predicted 2027 CFAs Opening Soon</div>`;
+    html+=`<div class="roadmap-item"><div class="ri-dot ri-waiting"></div><span style="font-size:11px;color:var(--muted);font-style:italic">Based on 2026 deadline — estimated 2027 CFA window. Not yet confirmed.</span></div>`;
+    predicted.forEach(({conf,predOpen,pred2027Deadline,daysUntilOpen})=>{
+      const openStr=daysUntilOpen<=0?'<span style="color:var(--urgent);font-weight:600">likely open now</span>':`~${MONTHS[predOpen.getMonth()]} ${predOpen.getDate()}`;
+      const dlStr=MONTHS[pred2027Deadline.getMonth()]+' '+pred2027Deadline.getDate()+' 2027';
+      const dot=daysUntilOpen<=0?'ri-alert':'ri-pending';
+      const link=conf.cfaUrl||conf.url;
+      html+=`<div class="roadmap-item"><div class="ri-dot ${dot}"></div><span><strong>${conf.name}</strong> — opens ${openStr}, est. deadline ~${dlStr}${link?` <a href="${link}" target="_blank" style="color:var(--blue)">↗</a>`:''}</span></div>`;
+    });
+  }
+
+  // Known 2027 open CFAs
+  if(known2027Open.length){
+    html+=`<div class="roadmap-col-title" style="color:var(--accepted);margin-top:10px">✓ 2027 CFAs Open</div>`;
+    known2027Open.forEach(c=>{
+      const dl=new Date(c.deadline);
+      const days=Math.ceil((dl-TODAY)/86400000);
+      const dlStr=MONTHS[dl.getMonth()]+' '+dl.getDate()+', '+dl.getFullYear();
+      const dot=days<=30?'ri-alert':'ri-pending';
+      html+=`<div class="roadmap-item"><div class="ri-dot ${dot}"></div><span><strong>${c.name}</strong> — deadline ${dlStr} (${days}d)</span></div>`;
+    });
+  }
+
+  // 2027 watch list
+  if(known2027Watch.length){
+    html+=`<div class="roadmap-col-title" style="color:var(--muted);margin-top:10px">📅 2027 Watch — CFA Not Yet Open</div>`;
+    known2027Watch.slice(0,8).forEach(c=>{
+      html+=`<div class="roadmap-item"><div class="ri-dot ri-waiting"></div><span><strong>${c.name}</strong>${c.confDates?' — '+c.confDates:''}</span></div>`;
+    });
+  }
+
+  col.innerHTML=html;
+}
+
+renderAll();
+renderRoadmapFromData();
+renderCfaAlerts();
+</script>
+</body>
+</html>
